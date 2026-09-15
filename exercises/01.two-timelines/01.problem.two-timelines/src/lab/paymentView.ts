@@ -1,11 +1,11 @@
 /**
  * Turning what the server said into what the customer sees.
  *
- * 🦉 This function is pure. It gets one argument, an `ApiResult<Payment>`, and returns
+ * 🧾 This function is pure. It gets one argument, an `ApiResult<Payment>`, and returns
  * what the screen should render. No fetching, no state. The checkout screen calls it
  * every time it hears anything from the server.
  *
- * 🦉 `ApiResult` has two shapes, and the difference matters:
+ * 🧾 `ApiResult` has two shapes, and the difference matters:
  *      { ok: true, data: payment }   the server answered, and `payment.status` is the truth
  *      { ok: false, kind: ... }      we never got an answer: a timeout, a dropped connection
  *
@@ -15,7 +15,7 @@
 import type { ApiResult, CustomerView, Payment } from '@stacknotes/lab-core/contracts';
 
 export function toCustomerView(result: ApiResult<Payment>): CustomerView {
-  // 🐨 Task 1: this function currently knows two outcomes, "failed" and "paid", and
+  // 🦆 Task 1: this function currently knows two outcomes, "failed" and "paid", and
   //    sorts everything into one of them. Give it the outcomes that actually exist.
   //
   //    Three things are wrong with what follows. Watch the screen and the event timeline

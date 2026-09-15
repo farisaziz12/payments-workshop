@@ -68,7 +68,7 @@ Three files in `01.problem.two-timelines/src/lab/`. All three are plain function
 | `restoreCheckout.ts` | Find the purchase again after a reload or a return visit |
 | `accessDecision.ts` | Decide whether the workspace shows locked or unlocked |
 
-🐨 marks a task. 🦉 marks background you do not need to change.
+🦆 marks a task. 🧾 marks background you do not need to change. 💰 marks a hint, and they all live in `01.problem.two-timelines/HINTS.md`.
 
 Everything else is built for you: the simulated provider, the payment store, event delivery and de-duplication, idempotent checkout, the scenario panel, the reset, and the event timeline.
 
@@ -76,13 +76,13 @@ Everything else is built for you: the simulated provider, the payment store, eve
 
 Reproduce the tickets first. Pick **Bank debit is accepted, then succeeds** in the control panel, pay with bank debit, and watch the status panel next to the event timeline. The timeline is the server talking. The panel is your code talking. They disagree.
 
-**🐨 Task 1, `paymentView.ts`.** Return a view that matches what the server reported. A processing payment is pending and worth polling for, a declined payment is a failure worth retrying, and a request that timed out or lost its connection is neither. `ApiResult` is `{ ok: true, data }` when the server answered and `{ ok: false, kind }` when it did not. A decline is an `ok: true` carrying `status: 'failed'`.
+**🦆 Task 1, `paymentView.ts`.** Return a view that matches what the server reported. A processing payment is pending and worth polling for, a declined payment is a failure worth retrying, and a request that timed out or lost its connection is neither. `ApiResult` is `{ ok: true, data }` when the server answered and `{ ok: false, kind }` when it did not. A decline is an `ok: true` carrying `status: 'failed'`.
 
-**🐨 Task 3, `accessDecision.ts`.** The function gets three inputs and only one of them decided anything on a server. Return a decision based on `entitlement.access`, and use `entitlement.reason` for the explanation. While the entitlement is still `null`, say you are checking rather than guessing.
+**🦆 Task 3, `accessDecision.ts`.** The function gets three inputs and only one of them decided anything on a server. Return a decision based on `entitlement.access`, and use `entitlement.reason` for the explanation. While the entitlement is still `null`, say you are checking rather than guessing.
 
-**🐨 Task 2, `restoreCheckout.ts`.** Find the purchase id the customer already has, in the URL or in localStorage, and ask the server what state it is in with `context.api.getPurchase(id)`. A `not_found` means start fresh. A timeout means keep the id and admit you do not know yet. Nothing in the query string is proof of payment.
+**🦆 Task 2, `restoreCheckout.ts`.** Find the purchase id the customer already has, in the URL or in localStorage, and ask the server what state it is in with `context.api.getPurchase(id)`. A `not_found` means start fresh. A timeout means keep the id and admit you do not know yet. Nothing in the query string is proof of payment.
 
-> Those are in the order worth working in, which is not the order they are numbered. Task 3 is cheapest and carries the business rule. Task 2 is largest, so leave time for it. The numbers match the 🐨 comments and the labels in `pnpm test:exercise 01`.
+> Those are in the order worth working in, which is not the order they are numbered. Task 3 is cheapest and carries the business rule. Task 2 is largest, so leave time for it. The numbers match the 🦆 comments and the labels in `pnpm test:exercise 01`.
 
 ## ✅ You'll know you're done when
 

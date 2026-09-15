@@ -1,20 +1,20 @@
 /**
  * Finding the purchase again after a reload, a closed tab, or a returning customer.
  *
- * 🦉 The checkout screen calls this once, on mount, before it renders anything.
+ * 🧾 The checkout screen calls this once, on mount, before it renders anything.
  *    Whatever it returns becomes the starting state.
  *
- * 🦉 What you are given, in `context`:
+ * 🧾 What you are given, in `context`:
  *      context.search    the query string, as URLSearchParams
  *      context.storage   this origin's localStorage
  *      context.api       the application server: `await context.api.getPurchase(id)`
  *
- * 🦉 `getPurchase` returns an `ApiResult<PurchaseView>`:
+ * 🧾 `getPurchase` returns an `ApiResult<PurchaseView>`:
  *      { ok: true, data: { purchase, payment } }   payment is null when there is none yet
  *      { ok: false, kind: 'not_found' }            this server has no such purchase
  *      { ok: false, kind: 'timeout' | 'network' }  we could not reach the server
  *
- * 🦉 The screen saves the purchase id you return into localStorage and into the URL.
+ * 🧾 The screen saves the purchase id you return into localStorage and into the URL.
  *    You do not have to write either one. The key it saves under is exported as
  *    `PURCHASE_STORAGE_KEY` from '@stacknotes/lab-core/ui', alongside `mintPurchaseId`.
  */
@@ -22,7 +22,7 @@ import type { RestoreContext, RestoreResult } from '@stacknotes/lab-core/ui';
 import { mintPurchaseId } from '@stacknotes/lab-core/ui';
 
 export async function restoreCheckout(context: RestoreContext): Promise<RestoreResult> {
-  // 🐨 Task 2: this never asks the server anything. It trusts the URL, and when the URL
+  // 🦆 Task 2: this never asks the server anything. It trusts the URL, and when the URL
   //    says nothing it starts a brand new purchase.
   //
   //    Two customers are having a bad time because of it:

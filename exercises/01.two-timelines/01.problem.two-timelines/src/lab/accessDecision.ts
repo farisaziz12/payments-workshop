@@ -1,21 +1,21 @@
 /**
  * Deciding whether the workspace may be used.
  *
- * 🦉 This is a pure function. It takes what the browser knows and returns a decision.
+ * 🧾 This is a pure function. It takes what the browser knows and returns a decision.
  *    Rendering it is somebody else's job, so there is no styling or markup in here.
  *
- * 🦉 The three things you are handed:
+ * 🧾 The three things you are handed:
  *      inputs.entitlement    the application server's decision, or null while it loads.
  *                            { access: 'none' | 'active', reason, workspaceId, grantedByPaymentId? }
  *      inputs.clientStatus   what this browser last heard about the payment. A cache.
  *      inputs.search         the query string from the customer's link.
  *
- * 🦉 Only one of those three decided anything on a server.
+ * 🧾 Only one of those three decided anything on a server.
  */
 import type { AccessDecision, AccessInputs } from '@stacknotes/lab-core/contracts';
 
 export function deriveAccess(inputs: AccessInputs): AccessDecision {
-  // 🐨 Task 3: this unlocks the workspace without ever reading the server's decision.
+  // 🦆 Task 3: this unlocks the workspace without ever reading the server's decision.
   //
   //    Support has two tickets open:
   //      - a customer whose bank debit is still being confirmed already has full access,
