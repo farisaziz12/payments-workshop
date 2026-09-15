@@ -1,0 +1,26 @@
+/*
+ * The only CSS this lab writes.
+ *
+ * Radix Themes ships everything else: colour scales, spacing, radius, typography and
+ * dark mode. The three rules below are the ones a component library cannot set for you.
+ */
+
+@import '@radix-ui/themes/styles.css';
+
+body {
+  margin: 0;
+}
+
+/* Radix Themes switches on a class, so tell the browser which form controls to paint. */
+html.light {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* next-themes adds this class for a moment while it resolves the system preference. */
+html[data-theme] {
+  color-scheme: light dark;
+}

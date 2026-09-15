@@ -1,0 +1,4 @@
+packages:
+  - packages/*
+  - exercises/*/*.problem.*
+  - exercises/*/*.solution.*
