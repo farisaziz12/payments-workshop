@@ -33,10 +33,10 @@ Nothing from those files reached this repository. Every runner, config and scrip
 | --- | --- | --- |
 | Parallel `exercises/<nn>-<slug>` and `solutions/<nn>-<slug>` trees with identical slugs | repository root | same layout |
 | Numbered launch commands, `01` and `1` both accepted, number to slug lookup | `nextjs-architecture-workshop/scripts/run-exercise.js:14-22` | `scripts/lab.mjs`, rewritten |
-| Exercise README skeleton with emoji headings | `nextjs-architecture-workshop/exercises/01-circuit-breaker/README.md` | `exercises/01.two-timelines/README.md` |
+| Exercise README skeleton with emoji headings | `nextjs-architecture-workshop/exercises/01-circuit-breaker/README.md` | `exercises/01.answers-later/README.md` |
 | In-code markers separating "do this" from "read this, leave it alone" | `nextjs-architecture-workshop/exercises/01-circuit-breaker/pages/api/products/index.ts:5-8` | the same idea, different glyphs: 🦆 and 🧾 in the three lab files |
 | Checkbox acceptance criteria phrased as observable behaviour | their exercise READMEs | "You'll know you're done when" |
-| Solution README explaining the key implementation choices | `nextjs-architecture-workshop/solutions/01-circuit-breaker/README.md` | `exercises/01.two-timelines/01.solution.two-timelines/README.md` |
+| Solution README explaining the key implementation choices | `nextjs-architecture-workshop/solutions/01-circuit-breaker/README.md` | `exercises/01.answers-later/01.solution.answers-later/README.md` |
 | A control panel for failure injection, with a reset | their `scripts/mock-api.js` and `core-app/mocks/dashboard.html` | the in-app simulator panel |
 
 **Changed**
@@ -83,7 +83,7 @@ Nothing from those files reached this repository. Every runner, config and scrip
 
 The layout follows the [Epic Web](https://github.com/epicweb-dev/react-fundamentals) conventions, checked against commit `9a215a1`.
 
-**Adopted.** Dot-numbered directories (`01.two-timelines`), problem and solution colocated inside the exercise folder rather than in two distant top-level trees, a short concept README at the exercise level with a task README per step, and a `FINISHED.md` wrap-up.
+**Adopted.** Dot-numbered directories (`01.answers-later`), problem and solution colocated inside the exercise folder rather than in two distant top-level trees, a short concept README at the exercise level with a task README per step, and a `FINISHED.md` wrap-up.
 
 **Changed.** The in-code markers are theirs in spirit and ours in glyph: 🦆 for a task, 🧾 for background you should not change, 💰 for a hint. Only the last one is also theirs, and it stays because money is what this lab is about. The koala and the owl belong to their workshop.
 

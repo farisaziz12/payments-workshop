@@ -6,7 +6,7 @@
  *   pnpm test:exercise   the starter. Fails until TODO 1 is done, on purpose.
  */
 import { describe, expect, it } from 'vitest';
-import type { ApiResult, Payment, PaymentStatus } from '@stacknotes/lab-core/contracts';
+import type { ApiResult, Payment, PaymentStatus } from '@bigpdf/lab-core/contracts';
 import { toCustomerView } from '@lab/app/lab/paymentView';
 
 function payment(status: PaymentStatus, overrides: Partial<Payment> = {}): ApiResult<Payment> {

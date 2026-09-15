@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// StackNotes payments workshop runner.
+// Bigpdf payments workshop runner.
 // Written from scratch for this repository: no dependencies, no install step, no network.
 //
 //   pnpm exercise 01            start the starter app   (default port 3001)
@@ -27,9 +27,9 @@ const ROOT = path.join(import.meta.dirname, '..');
  */
 const EXERCISES = {
   '01': {
-    slug: '01.two-timelines',
-    exercise: '01.problem.two-timelines',
-    solution: '01.solution.two-timelines',
+    slug: '01.answers-later',
+    exercise: '01.problem.answers-later',
+    solution: '01.solution.answers-later',
   },
 };
 
@@ -248,7 +248,7 @@ async function commandTestExercise(argv) {
       `  Failures here are the point: each one names the TODO that still needs work.\n`,
   );
 
-  const reportPath = path.join(os.tmpdir(), `stacknotes-exercise-${process.pid}.json`);
+  const reportPath = path.join(os.tmpdir(), `bigpdf-exercise-${process.pid}.json`);
   const child = vitest(
     ['run', '--project', 'exercise', '--reporter=default', '--reporter=json', `--outputFile.json=${reportPath}`],
     { env: { CI: '1' } },

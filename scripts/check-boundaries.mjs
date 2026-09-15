@@ -27,13 +27,13 @@ function walk(dir) {
   return out;
 }
 
-const exerciseSrc = path.join(ROOT, 'exercises/01.two-timelines/01.problem.two-timelines/src');
-const solutionSrc = path.join(ROOT, 'exercises/01.two-timelines/01.solution.two-timelines/src');
+const exerciseSrc = path.join(ROOT, 'exercises/01.answers-later/01.problem.answers-later/src');
+const solutionSrc = path.join(ROOT, 'exercises/01.answers-later/01.solution.answers-later/src');
 
 // 1. No reaching into the solution.
 for (const file of walk(exerciseSrc)) {
   const source = fs.readFileSync(file, 'utf8');
-  if (/from\s+['"][^'"]*solutions?\//.test(source) || /@stacknotes\/solution/.test(source)) {
+  if (/from\s+['"][^'"]*solutions?\//.test(source) || /@bigpdf\/solution/.test(source)) {
     problems.push(`${path.relative(ROOT, file)} imports from the solution`);
   }
 }

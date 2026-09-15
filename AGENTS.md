@@ -8,7 +8,7 @@ Nothing here is required to do the exercise. An attendee with no assistant shoul
 
 The exercise repository for **Payments and Monetization at Scale for Frontend Engineers** by Faris Aziz. One lab, 25 minutes, for frontend, full-stack and lead engineers. Payments knowledge is not assumed.
 
-The lab is **One checkout, two payment timelines**. StackNotes sells one plan at €20.00 per workspace per month before tax. A card payment answers in the checkout response. A bank debit is accepted for processing and answers later, as a provider event. The starter was written as if only the first timeline existed.
+The lab is **the payment that answers later**. Bigpdf sells one plan at €20.00 per workspace per month before tax. A card payment answers in the checkout response. A bank debit is accepted for processing and answers later, as a provider event. The starter was written as if only the first timeline existed.
 
 ## Two modes
 
@@ -16,10 +16,10 @@ The lab is **One checkout, two payment timelines**. StackNotes sells one plan at
 
 - Ask what they observed before offering anything: which scenario, what the screen said, what the event timeline said.
 - Help them reproduce it. The timeline polls independently of their code, so it keeps telling the truth.
-- Give hints in order, one level at a time, from `exercises/01.two-timelines/01.problem.two-timelines/HINTS.md`.
+- Give hints in order, one level at a time, from `exercises/01.answers-later/01.problem.answers-later/HINTS.md`.
 - **Do not complete the tasks.** Do not paste a working `toCustomerView`, `restoreCheckout` or `deriveAccess`.
 - **Do not read the solution to them**, quote it, or diff the starter against it.
-- **Never edit anything under `01.solution.two-timelines/`.**
+- **Never edit anything under `01.solution.answers-later/`.**
 - Give a direct answer only when the attendee explicitly asks for one. Then give it, explain it, and move on.
 
 **Maintainer mode is opt-in.** Enter it only on an explicit request, and say so in one line. Then you may implement changes, run every check, compare the two apps, and update the materials.
@@ -28,7 +28,7 @@ Unsure which mode you are in? You are in tutor mode.
 
 ## The starter is deliberately wrong
 
-The starter has three behavioural bugs, one per file in `01.problem.two-timelines/src/lab/`. They are not listed here on purpose: this file is public, and naming them hands an attendee the exercise.
+The starter has three behavioural bugs, one per file in `01.problem.answers-later/src/lab/`. They are not listed here on purpose: this file is public, and naming them hands an attendee the exercise.
 
 Find them the way an attendee does, by running the lab and comparing the status panel against the event timeline. They are behavioural, never type errors, so the starter type checks, lints and builds. A bug a compiler could catch would teach nothing about payments.
 
@@ -40,9 +40,9 @@ packages/lab-core/            shared, consumed as TypeScript source
   src/server/                 store, simulated provider, event rules, entitlement,
                               checkout, HTTP handlers. Server only
   src/ui/                     Radix Themes components, design system, API client, hooks
-exercises/01.two-timelines/
-  01.problem.two-timelines/   the starter       (port 3001)
-  01.solution.two-timelines/  the finished app  (port 3002)
+exercises/01.answers-later/
+  01.problem.answers-later/   the starter       (port 3001)
+  01.solution.answers-later/  the finished app  (port 3002)
 ```
 
 ```mermaid
@@ -57,7 +57,7 @@ flowchart LR
 
 Both apps are Next.js 16 App Router on React 19. Their route handlers are one-line re-exports of `packages/lab-core/src/server/handlers.ts`, so the two apps share one server and differ only in three files.
 
-**The three entry points matter.** `@stacknotes/lab-core/server` owns the in-memory store and must never reach a client bundle. `@stacknotes/lab-core/ui` is `'use client'` code. `@stacknotes/lab-core/contracts` is safe in both.
+**The three entry points matter.** `@bigpdf/lab-core/server` owns the in-memory store and must never reach a client bundle. `@bigpdf/lab-core/ui` is `'use client'` code. `@bigpdf/lab-core/contracts` is safe in both.
 
 **State lives in memory**, on `globalThis` so it survives hot reloads, using plain objects and Maps because a class instance would fail `instanceof` after a module reload. Restarting the dev server clears everything.
 

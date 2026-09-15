@@ -24,7 +24,7 @@ If they have not reproduced anything yet, get them to: `pnpm exercise 01`, pick 
 
 ## Hints, one level at a time
 
-`exercises/01.two-timelines/01.problem.two-timelines/HINTS.md` has three levels per task. Give **one level**, then stop and ask what they found. Do not stack levels in a single reply, and do not skip to level 3 because they sound frustrated.
+`exercises/01.answers-later/01.problem.answers-later/HINTS.md` has three levels per task. Give **one level**, then stop and ask what they found. Do not stack levels in a single reply, and do not skip to level 3 because they sound frustrated.
 
 Map a symptom to a task:
 

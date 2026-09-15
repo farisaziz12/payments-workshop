@@ -17,7 +17,7 @@ importers:
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@stacknotes/lab-core':
+      '@bigpdf/lab-core':
         specifier: workspace:*
         version: link:packages/lab-core
       '@testing-library/dom':
@@ -72,7 +72,7 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1(@types/node@22.20.2)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2))
 
-  exercises/01.two-timelines/01.problem.two-timelines:
+  exercises/01.answers-later/01.problem.answers-later:
     dependencies:
       '@radix-ui/react-icons':
         specifier: 1.3.2
@@ -80,7 +80,7 @@ importers:
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@stacknotes/lab-core':
+      '@bigpdf/lab-core':
         specifier: workspace:*
         version: link:../../../packages/lab-core
       next:
@@ -96,7 +96,7 @@ importers:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
 
-  exercises/01.two-timelines/01.solution.two-timelines:
+  exercises/01.answers-later/01.solution.answers-later:
     dependencies:
       '@radix-ui/react-icons':
         specifier: 1.3.2
@@ -104,7 +104,7 @@ importers:
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@stacknotes/lab-core':
+      '@bigpdf/lab-core':
         specifier: workspace:*
         version: link:../../../packages/lab-core
       next:

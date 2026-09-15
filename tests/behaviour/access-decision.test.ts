@@ -2,7 +2,7 @@
  * [TODO 3] Does the workspace page follow the server's entitlement decision?
  */
 import { describe, expect, it } from 'vitest';
-import type { AccessInputs, Entitlement, EntitlementReason } from '@stacknotes/lab-core/contracts';
+import type { AccessInputs, Entitlement, EntitlementReason } from '@bigpdf/lab-core/contracts';
 import { deriveAccess } from '@lab/app/lab/accessDecision';
 
 const WORKSPACE = 'ws_northstar';

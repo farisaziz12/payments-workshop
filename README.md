@@ -14,7 +14,7 @@ pnpm install
 pnpm exercise 01     # http://localhost:3001
 ```
 
-Then open **[exercises/01.two-timelines](./exercises/01.two-timelines/README.md)** and work from there.
+Then open **[exercises/01.answers-later](./exercises/01.answers-later/README.md)** and work from there.
 
 Needs Node 20.9 or newer. `.nvmrc` pins 22.
 
@@ -22,9 +22,9 @@ Needs Node 20.9 or newer. `.nvmrc` pins 22.
 
 | Path | What it is |
 | --- | --- |
-| [`exercises/01.two-timelines/`](./exercises/01.two-timelines/README.md) | The lab. Start here |
-| `exercises/01.two-timelines/01.problem.two-timelines/` | The starter you edit, port 3001 |
-| `exercises/01.two-timelines/01.solution.two-timelines/` | The finished version, port 3002 |
+| [`exercises/01.answers-later/`](./exercises/01.answers-later/README.md) | The lab. Start here |
+| `exercises/01.answers-later/01.problem.answers-later/` | The starter you edit, port 3001 |
+| `exercises/01.answers-later/01.solution.answers-later/` | The finished version, port 3002 |
 | `packages/lab-core/` | Everything that is built for you: contracts, simulated provider, server, UI kit |
 | [`docs/`](./docs/payment-state-contracts.md) | Contracts, scenarios, troubleshooting, agent setup, provenance |
 

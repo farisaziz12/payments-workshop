@@ -1,8 +1,8 @@
 {
-  "name": "@stacknotes/lab-core",
+  "name": "@bigpdf/lab-core",
   "version": "0.1.0",
   "private": true,
-  "description": "Shared plumbing for the StackNotes payments lab: contracts, simulated provider, server store, event handling and UI kit. Consumed as TypeScript source.",
+  "description": "Shared plumbing for the Bigpdf payments lab: contracts, simulated provider, server store, event handling and UI kit. Consumed as TypeScript source.",
   "type": "module",
   "exports": {
     "./contracts": "./src/contracts/index.ts",

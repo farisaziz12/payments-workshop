@@ -1,5 +1,5 @@
 /**
- * StackNotes payments lab: shared contracts.
+ * Bigpdf payments lab: shared contracts.
  *
  * Everything the client and the server agree on lives here: payment state,
  * entitlement state, the purchase record, provider events, and the result type
@@ -9,10 +9,10 @@
  * explains the transitions and the policy behind them.
  */
 
-/** The plan StackNotes sells. One plan, one price, billed per workspace per month. */
+/** The plan Bigpdf sells. One plan, one price, billed per workspace per month. */
 export const PLAN = {
   planId: 'team-monthly',
-  name: 'StackNotes Team',
+  name: 'Bigpdf Team',
   amountMinor: 2000,
   currency: 'EUR',
   interval: 'month',

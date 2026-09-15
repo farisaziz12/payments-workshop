@@ -41,7 +41,7 @@ export type LabState = {
 
 export const DEFAULT_SCENARIO: ScenarioId = 'instant-success';
 
-const STORE_KEY = Symbol.for('stacknotes.lab.store');
+const STORE_KEY = Symbol.for('bigpdf.lab.store');
 
 type GlobalWithStore = typeof globalThis & { [STORE_KEY]?: LabState };
 

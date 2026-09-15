@@ -49,7 +49,7 @@ const config = [
         {
           patterns: [
             {
-              group: ['**/*.solution.*/**', '@stacknotes/solution-*'],
+              group: ['**/*.solution.*/**', '@bigpdf/solution-*'],
               message: 'The starter cannot import from the solution. Work it out in the exercise files.',
             },
           ],

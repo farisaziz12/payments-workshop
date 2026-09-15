@@ -2,9 +2,9 @@
  * [TODO 2] Can the checkout find the purchase again after a reload?
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ApiResult, Payment, PurchaseView } from '@stacknotes/lab-core/contracts';
-import type { LabApi, RestoreContext } from '@stacknotes/lab-core/ui';
-import { PURCHASE_STORAGE_KEY } from '@stacknotes/lab-core/ui';
+import type { ApiResult, Payment, PurchaseView } from '@bigpdf/lab-core/contracts';
+import type { LabApi, RestoreContext } from '@bigpdf/lab-core/ui';
+import { PURCHASE_STORAGE_KEY } from '@bigpdf/lab-core/ui';
 import { restoreCheckout } from '@lab/app/lab/restoreCheckout';
 
 const PAYMENT: Payment = {

@@ -17,9 +17,9 @@ const behaviour = (name: 'exercise' | 'solution', appDir: string) => ({
   resolve: {
     alias: {
       '@lab/app': path.join(here, appDir, 'src'),
-      '@stacknotes/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
-      '@stacknotes/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
-      '@stacknotes/lab-core/ui': path.join(here, 'packages/lab-core/src/ui/index.ts'),
+      '@bigpdf/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
+      '@bigpdf/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
+      '@bigpdf/lab-core/ui': path.join(here, 'packages/lab-core/src/ui/index.ts'),
     },
   },
   test: {
@@ -38,8 +38,8 @@ export default defineConfig({
       {
         resolve: {
           alias: {
-            '@stacknotes/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
-            '@stacknotes/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
+            '@bigpdf/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
+            '@bigpdf/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
           },
         },
         test: {
@@ -49,8 +49,8 @@ export default defineConfig({
           include: ['packages/lab-core/test/**/*.test.ts'],
         },
       },
-      behaviour('exercise', 'exercises/01.two-timelines/01.problem.two-timelines'),
-      behaviour('solution', 'exercises/01.two-timelines/01.solution.two-timelines'),
+      behaviour('exercise', 'exercises/01.answers-later/01.problem.answers-later'),
+      behaviour('solution', 'exercises/01.answers-later/01.solution.answers-later'),
     ],
   },
 });

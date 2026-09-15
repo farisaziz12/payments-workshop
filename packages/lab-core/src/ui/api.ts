@@ -76,7 +76,7 @@ export const labApi: LabApi = {
 };
 
 /** Where the browser keeps the purchase id so a reload can find the purchase again. */
-export const PURCHASE_STORAGE_KEY = 'stacknotes.purchaseId';
+export const PURCHASE_STORAGE_KEY = 'bigpdf.purchaseId';
 
 /** A readable, unique-enough id. The server never trusts it for anything but lookup. */
 export function mintPurchaseId(): string {
