@@ -22,6 +22,13 @@ const EXERCISES = [
     solution: '01.solution.game-day',
     labFiles: ['routing.ts', 'retryPolicy.ts'],
   },
+  {
+    key: '02',
+    slug: '02.grace-periods',
+    problem: '02.problem.grace-periods',
+    solution: '02.solution.grace-periods',
+    labFiles: ['graceWindow.ts', 'dunningDecision.ts'],
+  },
 ];
 
 /** Files outside `lab/` that are allowed to differ, because they name the app. */

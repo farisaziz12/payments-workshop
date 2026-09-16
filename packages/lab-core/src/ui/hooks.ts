@@ -8,8 +8,8 @@
  * orchestrator did, not your code reporting on itself.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ApiResult, DashboardState, IncidentId, TimelineEntry } from '../contracts/index';
-import { labApi } from './api';
+import type { ApiResult, BillingState, DashboardState, IncidentId, TimelineEntry } from '../contracts/index';
+import { billingApi, labApi } from './api';
 
 export const POLL_INTERVAL_MS = 1000;
 
@@ -90,5 +90,30 @@ export function useDashboard(): DashboardControls {
     setIncident: (incidentId, active) => after(labApi.setIncident(incidentId, active)),
     burst: (count) => after(labApi.burst(count)),
     reset: () => after(labApi.reset()),
+  };
+}
+
+export type BillingControls = {
+  state: BillingState | null;
+  advance: (hours: number) => Promise<void>;
+  reset: () => Promise<void>;
+};
+
+/**
+ * The billing console does not poll on a timer. Nothing moves until somebody moves the
+ * clock, and a console that refreshed itself would suggest otherwise.
+ */
+export function useBilling(): BillingControls {
+  const { lastData, refresh } = usePoll(() => billingApi.getBilling(), { intervalMs: 60_000 });
+
+  const after = async (call: Promise<unknown>): Promise<void> => {
+    await call;
+    await refresh();
+  };
+
+  return {
+    state: lastData,
+    advance: (hours) => after(billingApi.advance(hours)),
+    reset: () => after(billingApi.reset()),
   };
 }

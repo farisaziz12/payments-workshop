@@ -43,9 +43,9 @@ What follows from that:
 
 ## 🧪 Tests
 
-**`pnpm test` fails but I have not written anything.** It should not. It runs the shared unit tests and the behaviour tests against the *solution*. If it fails on a clean checkout, that is a repository bug, not yours.
+**`pnpm test` fails but I have not written anything.** It should not. It runs the shared unit tests and the behaviour tests against the *references*. If it fails on a clean checkout, that is a repository bug, not yours.
 
-**`pnpm test:exercise 01` fails, and reports failures.** That is what it is for. It always exits 0; the summary tells you which TODO still has work.
+**`pnpm test:exercise 01` fails, and reports failures.** That is what it is for. It always exits 0; the summary tells you which task still has work.
 
 **Playwright cannot find a browser.** Once per machine:
 

@@ -1,6 +1,21 @@
-/** Money, and the one plan Bigpdf sells. Shared by both exercises. */
+/** Shapes both exercises share. Safe on the client and on the server. */
 
 export type Currency = 'EUR' | 'GBP';
+
+/**
+ * The methods Bigpdf accepts, and the reason there are two exercises.
+ *
+ * A card authorises in the request. A SEPA direct debit is submitted, and the bank can
+ * come back days later to say it was never paid. Every timing decision downstream, from
+ * routing to dunning, follows from that difference.
+ */
+export type PaymentMethod = 'card' | 'sepa_debit';
+
+export type Country = 'DE' | 'FR' | 'GB';
+
+export function methodLabel(method: PaymentMethod): string {
+  return method === 'card' ? 'Card' : 'SEPA debit';
+}
 
 export const PLAN = {
   planId: 'team-monthly',

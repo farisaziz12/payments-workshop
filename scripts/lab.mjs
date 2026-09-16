@@ -31,6 +31,11 @@ const EXERCISES = {
     exercise: '01.problem.game-day',
     solution: '01.solution.game-day',
   },
+  '02': {
+    slug: '02.grace-periods',
+    exercise: '02.problem.grace-periods',
+    solution: '02.solution.grace-periods',
+  },
 };
 
 /** Exercise n gets 3000 + 2n - 1 for the starter and 3000 + 2n for the solution. */
@@ -269,7 +274,7 @@ async function commandTestExercise(argv) {
 
   child.on('exit', () => {
     const report = readReport(reportPath);
-    if (report) summarise(report);
+    if (report) summarise(report, key);
     else console.log('\n  (Could not summarise the run. The reporter output above is the source of truth.)\n');
     // Expected failures are not a broken repo, so this command always succeeds.
     process.exit(0);
@@ -286,46 +291,59 @@ function readReport(reportPath) {
   }
 }
 
-function summarise(report) {
-  const perTodo = new Map();
+function summarise(report, key) {
+  const perTask = new Map();
   for (const suite of report.testResults ?? []) {
     for (const test of suite.assertionResults ?? []) {
       const titles = [...(test.ancestorTitles ?? []), test.title ?? ''];
-      const todo = titles.join(' ').match(/\[TODO \d]/)?.[0] ?? 'other checks';
-      const entry = perTodo.get(todo) ?? { total: 0, failed: 0 };
+      const task = titles.join(' ').match(/\[Task \d]/)?.[0] ?? 'other checks';
+      const entry = perTask.get(task) ?? { total: 0, failed: 0 };
       entry.total += 1;
       if (test.status === 'failed') entry.failed += 1;
-      perTodo.set(todo, entry);
+      perTask.set(task, entry);
     }
   }
 
   console.log('  -- Starter progress -----------------------------');
-  for (const [todo, { total, failed }] of [...perTodo].sort()) {
+  for (const [task, { total, failed }] of [...perTask].sort()) {
     const state = failed === 0 ? `done, all ${total} checks pass` : `${failed} of ${total} checks still failing`;
-    console.log(`   ${todo}  ${state}`);
+    console.log(`   ${task}  ${state}`);
   }
   console.log('  -------------------------------------------------');
 
-  const totalFailed = [...perTodo.values()].reduce((sum, entry) => sum + entry.failed, 0);
+  const totalFailed = [...perTask.values()].reduce((sum, entry) => sum + entry.failed, 0);
   console.log(
     totalFailed === 0
-      ? '\n  All three TODOs pass. Run `pnpm test` to check the solution suite too.\n'
-      : '\n  Keep going. `pnpm exercise 01` shows the same problems in the browser.\n',
+      ? '\n  Every task passes. Run `pnpm test` to check the reference suite too.\n'
+      : `\n  Keep going. \`pnpm exercise ${key}\` shows the same problems in the browser.\n`,
   );
 }
 
 async function commandE2e(argv) {
   const { rest } = parseArgs(argv);
   const target = rest[0] === 'exercise' ? 'exercise' : 'solution';
+  // One app at a time: each keeps its state in memory, and two Playwright runs against
+  // the same port would reset each other halfway through.
+  const keys = rest[1] ? [resolveSlug(rest[1]).key] : Object.keys(EXERCISES);
+
   console.log(
     target === 'exercise'
-      ? '\n  Running the end-to-end suite against the STARTER. Failures are expected until the TODOs are done.\n'
-      : '\n  Running the end-to-end suite against the SOLUTION. These must all pass.\n',
+      ? `\n  Running the end-to-end suites against the STARTER (${keys.join(', ')}). Failures are expected.\n`
+      : `\n  Running the end-to-end suites against the SOLUTION (${keys.join(', ')}). These must all pass.\n`,
   );
-  const child = run(binFrom(ROOT, '@playwright/test', 'playwright'), ['test', '--project', target], {
-    env: { E2E_TARGET: target },
-  });
-  child.on('exit', (code) => process.exit(target === 'exercise' ? 0 : code ?? 0));
+
+  let failed = 0;
+  for (const key of keys) {
+    const code = await new Promise((resolve) => {
+      const child = run(binFrom(ROOT, '@playwright/test', 'playwright'), ['test', '--project', `${target}-${key}`], {
+        env: { E2E_TARGET: target, E2E_EXERCISE: key },
+      });
+      child.on('exit', (exitCode) => resolve(exitCode ?? 0));
+    });
+    if (code !== 0) failed += 1;
+  }
+
+  process.exit(target === 'exercise' ? 0 : failed === 0 ? 0 : 1);
 }
 
 const [command, ...argv] = process.argv.slice(2);

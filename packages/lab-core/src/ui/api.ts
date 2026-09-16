@@ -8,7 +8,7 @@
  * out? Those are different, and a console that conflates them will have you routing
  * traffic away from a gateway that was never down.
  */
-import type { ApiResult, DashboardState, IncidentId, TimelineEntry } from '../contracts/index';
+import type { ApiResult, BillingState, DashboardState, IncidentId, TimelineEntry } from '../contracts/index';
 
 /** How long the browser waits before giving up on a request. */
 export const CLIENT_TIMEOUT_MS = 3000;
@@ -50,6 +50,14 @@ export type LabApi = {
   reset(): Promise<ApiResult<DashboardState>>;
 };
 
+/** Exercise 02 talks to a different server, so it gets a different client. */
+export type BillingApi = {
+  getBilling(): Promise<ApiResult<BillingState>>;
+  getTimeline(): Promise<ApiResult<{ entries: TimelineEntry[] }>>;
+  advance(hours: number): Promise<ApiResult<BillingState>>;
+  reset(): Promise<ApiResult<BillingState>>;
+};
+
 export const labApi: LabApi = {
   getDashboard: () => request<DashboardState>('/api/dashboard'),
   getTimeline: () => request<{ entries: TimelineEntry[] }>('/api/timeline'),
@@ -63,4 +71,12 @@ export const labApi: LabApi = {
   burst: (count) =>
     request<DashboardState>('/api/simulator/burst', { method: 'POST', body: JSON.stringify({ count }) }),
   reset: () => request<DashboardState>('/api/simulator/reset', { method: 'POST' }),
+};
+
+export const billingApi: BillingApi = {
+  getBilling: () => request<BillingState>('/api/billing'),
+  getTimeline: () => request<{ entries: TimelineEntry[] }>('/api/timeline'),
+  advance: (hours) =>
+    request<BillingState>('/api/clock', { method: 'POST', body: JSON.stringify({ hours }) }),
+  reset: () => request<BillingState>('/api/clock/reset', { method: 'POST' }),
 };

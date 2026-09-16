@@ -1,16 +1,35 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * One config, two targets. `pnpm e2e` runs the solution, `pnpm e2e:exercise` runs the
- * starter, and each boots only its own app so the two never share a port or a store.
+ * One config, one app per run. `pnpm e2e` walks the exercises and runs each on its own,
+ * because every app keeps its state in memory: two runs against one port would reset each
+ * other halfway through.
  *
- * Workers are pinned to one: the lab's application server keeps its state in memory and
- * the traffic generator is shared, so parallel tests would be reading each other's
- * attempts and resetting each other's incidents.
+ * Workers are pinned to one for the same reason.
  */
+const EXERCISES: Record<string, { problem: number; solution: number }> = {
+  '01': { problem: 3001, solution: 3002 },
+  '02': { problem: 3003, solution: 3004 },
+};
+
+const key = process.env.E2E_EXERCISE ?? '01';
 const target = process.env.E2E_TARGET === 'exercise' ? 'exercise' : 'solution';
-const port = target === 'exercise' ? 3001 : 3002;
+const ports = EXERCISES[key] ?? EXERCISES['01']!;
+const port = target === 'exercise' ? ports.problem : ports.solution;
 const baseURL = `http://localhost:${port}`;
+
+const projects = Object.entries(EXERCISES).flatMap(([exercise, entry]) => [
+  {
+    name: `exercise-${exercise}`,
+    testDir: `./e2e/${exercise}`,
+    use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${entry.problem}` },
+  },
+  {
+    name: `solution-${exercise}`,
+    testDir: `./e2e/${exercise}`,
+    use: { ...devices['Desktop Chrome'], baseURL: `http://localhost:${entry.solution}` },
+  },
+]);
 
 export default defineConfig({
   testDir: './e2e',
@@ -25,13 +44,10 @@ export default defineConfig({
     baseURL,
     trace: 'retain-on-failure',
   },
-  projects: [
-    { name: 'exercise', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3001' } },
-    { name: 'solution', use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3002' } },
-  ],
+  projects,
   webServer: {
-    command: `node scripts/lab.mjs ${target} 01`,
-    url: `${baseURL}/api/dashboard`,
+    command: `node scripts/lab.mjs ${target} ${key}`,
+    url: `${baseURL}/api/${key === '02' ? 'billing' : 'dashboard'}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     stdout: 'ignore',

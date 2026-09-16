@@ -13,9 +13,9 @@ $ARGUMENTS
 | Command | Expected result |
 | --- | --- |
 | `pnpm test` | **Passes.** Unit tests plus behaviour tests against the solution |
-| `pnpm test:exercise 01` | **Fails**, with a per-TODO summary. Always exits 0 |
+| `pnpm test:exercise 01` | **Fails**, with a per-task summary. Always exits 0 |
 | `pnpm e2e` | **Passes.** Playwright against the solution |
-| `pnpm e2e:exercise` | **Fails** on the TODO-dependent specs. Exits 0 |
+| `pnpm e2e:exercise` | **Fails** on the task-dependent specs. Exits 0 |
 
 A fresh checkout with `pnpm test` green and `pnpm test:exercise` red is correct. Never change the starter to make the second one pass, and never report the starter's failures as a broken repository. When you report results, say which command you ran and label the expected failures as expected.
 

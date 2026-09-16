@@ -17,7 +17,7 @@ pnpm install --frozen-lockfile
 pnpm typecheck
 pnpm lint
 pnpm test                 # must pass
-pnpm test:exercise 01     # expected failures, per-TODO summary
+pnpm test:exercise 01     # expected failures, per-task summary
 pnpm build
 pnpm e2e                  # must pass
 pnpm e2e:exercise         # expected failures
@@ -31,7 +31,7 @@ A markdown file **outside the repository**, handed to Faris directly. It carries
 
 1. **Where it lives.** Local path, repository, branch, current commit.
 2. **References.** Commit SHAs inspected, and a file-level map of what was adopted, changed or excluded. Do not restate `docs/references.md`; link to it and summarise.
-3. **The exercise.** Flow, timing split, and the exact TODO files.
+3. **The exercises.** Flow, timing split, and the exact lab files.
 4. **Contracts.** Payment states and transitions, the entitlement policy as a deliberate choice, and what the simulator does not do.
 5. **Commands.** Setup, launch, reset, compare, test.
 6. **Scenario to acceptance test map.**

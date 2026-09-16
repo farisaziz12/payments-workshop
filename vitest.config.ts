@@ -12,7 +12,10 @@ const here = import.meta.dirname;
  *   exercise-nn   the same behaviour tests pointed at the starter. Expected to fail
  *                 until the tasks are done, which is what `pnpm test:exercise` reports.
  */
-const EXERCISES = [{ key: '01', slug: '01.game-day', name: 'game-day' }];
+const EXERCISES = [
+  { key: '01', slug: '01.game-day', name: 'game-day' },
+  { key: '02', slug: '02.grace-periods', name: 'grace-periods' },
+];
 
 const core = {
   '@bigpdf/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),

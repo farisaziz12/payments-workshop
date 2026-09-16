@@ -1,15 +1,17 @@
 /**
  * HTTP handlers for the lab's application server.
  *
- * The routing and retry decisions run here, on the server, because that is where they
- * run in real life. Each app wires its own `src/lab/` functions in through
- * `createHandlers`, so the starter and the solution share one server and differ only in
- * the two files you are asked to write.
+ * Both exercises decide on the server, because that is where they decide in real life.
+ * Each app wires its own `src/lab/` functions in through `createHandlers` for exercise 01
+ * or `createBillingHandlers` for exercise 02, so a starter and its reference share one
+ * server and differ only in the files you are asked to write.
  *
  * One rule runs through all of them: a 4xx means the request was malformed. A failed
  * payment is a perfectly successful HTTP 200 that says the payment failed.
  */
 import type { DashboardState } from '../contracts/index';
+import type { BillingPolicy } from './billing';
+import { advanceClock, billingState, readBillingTimeline, resetBillingStore } from './billing';
 import { GATEWAYS } from './gateways';
 import { currentHealth } from './health';
 import { incidentSummaries, isIncidentId } from './incidents';
@@ -129,4 +131,42 @@ async function readJson(request: Request): Promise<Record<string, unknown> | nul
   } catch {
     return null;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Exercise 02: billing and dunning.
+// ---------------------------------------------------------------------------
+
+export type BillingHandlers = {
+  billing: () => Response;
+  timeline: () => Response;
+  advance: (request: Request) => Promise<Response>;
+  reset: () => Response;
+};
+
+export function createBillingHandlers(policy: BillingPolicy): BillingHandlers {
+  return {
+    billing(): Response {
+      return json(billingState(policy));
+    },
+
+    timeline(): Response {
+      return json({ entries: readBillingTimeline() });
+    },
+
+    async advance(request: Request): Promise<Response> {
+      const body = await readJson(request);
+      if (body === null) return json({ error: 'Body must be JSON' }, 400);
+      const { hours } = body;
+      if (typeof hours !== 'number' || !Number.isFinite(hours) || hours < 1 || hours > 24 * 30) {
+        return json({ error: 'Expected { hours: between 1 and 720 }' }, 400);
+      }
+      return json(advanceClock(policy, hours));
+    },
+
+    reset(): Response {
+      resetBillingStore();
+      return json(billingState(policy));
+    },
+  };
 }

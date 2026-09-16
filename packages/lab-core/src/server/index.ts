@@ -12,4 +12,5 @@ export * from './incidents';
 export * from './traffic';
 export * from './health';
 export * from './orchestrator';
+export * from './billing';
 export * from './handlers';

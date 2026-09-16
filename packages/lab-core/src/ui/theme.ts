@@ -32,7 +32,13 @@ import {
   StackIcon,
 } from '@radix-ui/react-icons';
 import type { ComponentType } from 'react';
-import type { AttemptOutcome, FailureKind, TimelineActor } from '../contracts/index';
+import type {
+  AttemptOutcome,
+  DunningStage,
+  FailureKind,
+  InvoicePaymentState,
+  TimelineActor,
+} from '../contracts/index';
 
 /** Passed to a single `<Theme>` at the root of each app. Sections never override it. */
 export const THEME = {
@@ -88,6 +94,21 @@ export const ACTOR: Record<TimelineActor, { color: StatusColor; icon: Icon }> = 
   gateway: { color: 'violet', icon: StackIcon },
   chaos: { color: 'amber', icon: LightningBoltIcon },
   billing: { color: 'gray', icon: MixerHorizontalIcon },
+  bank: { color: 'violet', icon: StackIcon },
+};
+
+/** How a dunning stage looks. Suspension is the one that costs a customer. */
+export const STAGE: Record<DunningStage, StatusStyle> = {
+  none: { color: 'gray', icon: CheckCircledIcon, label: 'Nothing sent' },
+  reminded: { color: 'amber', icon: LapTimerIcon, label: 'Reminder sent' },
+  suspended: { color: 'red', icon: CrossCircledIcon, label: 'Suspended' },
+};
+
+/** What the payment behind the invoice is doing. */
+export const PAYMENT_STATE: Record<InvoicePaymentState, StatusStyle> = {
+  submitted: { color: 'amber', icon: LapTimerIcon, label: 'In flight' },
+  paid: { color: 'jade', icon: CheckCircledIcon, label: 'Paid' },
+  returned: { color: 'red', icon: CrossCircledIcon, label: 'Returned by the bank' },
 };
 
 export function formatRate(rate: number): string {

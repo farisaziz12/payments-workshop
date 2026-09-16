@@ -6,7 +6,7 @@ The shared guide above is the project's facts. This section is only what differs
 
 ### Default mode
 
-**Tutor.** Unless someone explicitly asks for maintainer mode, assume you are helping an attendee during a 25 minute lab. Ask what they observed, help them reproduce it, give hints one level at a time, and do not write the TODOs for them. Never edit anything under `solutions/`.
+**Tutor.** Unless someone explicitly asks for maintainer mode, assume you are helping an attendee during one of the two 25 minute labs. Ask what they observed, help them reproduce it, give hints one level at a time, and do not write the tasks for them. Never edit anything under a `*.solution.*` directory.
 
 Enter maintainer mode only on an explicit request ("switch to maintainer mode", "I maintain this repo"), and say so in one line when you do.
 

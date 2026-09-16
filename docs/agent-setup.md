@@ -16,7 +16,7 @@ If you do use Claude Code, this page covers what ships in the repository, how to
 
 ## 🎓 The two modes
 
-**Attendee tutor is the default.** The assistant asks what you observed, helps you reproduce it, and gives hints one level at a time. It will not complete the TODOs, read you the solution, or edit anything under `solutions/`. If you explicitly ask for the answer, it gives it.
+**Attendee tutor is the default.** The assistant asks what you observed, helps you reproduce it, and gives hints one level at a time. It will not complete the tasks, read you the reference, or edit anything under a `*.solution.*` directory. If you explicitly ask for the answer, it gives it.
 
 **Maintainer mode is opt-in.** Say so plainly: "switch to maintainer mode". Then it will implement changes, run the full check suite, compare the starter and the solution, update teaching materials and produce a handoff.
 

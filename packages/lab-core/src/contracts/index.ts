@@ -2,13 +2,15 @@
  * Bigpdf payments lab: shared contracts.
  *
  * Everything the browser and the server agree on. Safe to import from either side.
- * Exercise 01's shapes live in `gameday.ts`; money lives in `money.ts`.
+ * Exercise 01's shapes live in `gameday.ts`, exercise 02's in `billing.ts`, and the
+ * shapes both share in `common.ts`.
  *
  * `docs/payment-contracts.md` explains the reasoning. These files are the source of truth.
  */
 
-export * from './money';
+export * from './common';
 export * from './gameday';
+export * from './billing';
 
 /**
  * What a browser call to the application server returns.
@@ -23,7 +25,7 @@ export type ApiResult<T> =
   | { ok: false; kind: 'http'; status: number }
   | { ok: false; kind: 'not_found' };
 
-export type TimelineActor = 'orchestrator' | 'gateway' | 'chaos' | 'billing';
+export type TimelineActor = 'orchestrator' | 'gateway' | 'chaos' | 'billing' | 'bank';
 
 export type TimelineEntry = {
   id: string;

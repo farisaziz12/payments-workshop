@@ -33,10 +33,10 @@ Nothing from those files reached this repository. Every runner, config and scrip
 | --- | --- | --- |
 | Parallel `exercises/<nn>-<slug>` and `solutions/<nn>-<slug>` trees with identical slugs | repository root | same layout |
 | Numbered launch commands, `01` and `1` both accepted, number to slug lookup | `nextjs-architecture-workshop/scripts/run-exercise.js:14-22` | `scripts/lab.mjs`, rewritten |
-| Exercise README skeleton with emoji headings | `nextjs-architecture-workshop/exercises/01-circuit-breaker/README.md` | `exercises/01.answers-later/README.md` |
+| Exercise README skeleton with emoji headings | `nextjs-architecture-workshop/exercises/01-circuit-breaker/README.md` | `exercises/01.game-day/README.md` |
 | In-code markers separating "do this" from "read this, leave it alone" | `nextjs-architecture-workshop/exercises/01-circuit-breaker/pages/api/products/index.ts:5-8` | the same idea, different glyphs: 🦆 and 🧾 in the three lab files |
 | Checkbox acceptance criteria phrased as observable behaviour | their exercise READMEs | "You'll know you're done when" |
-| Solution README explaining the key implementation choices | `nextjs-architecture-workshop/solutions/01-circuit-breaker/README.md` | `exercises/01.answers-later/01.solution.answers-later/README.md` |
+| Solution README explaining the key implementation choices | `nextjs-architecture-workshop/solutions/01-circuit-breaker/README.md` | `exercises/01.game-day/01.solution.game-day/README.md` |
 | A control panel for failure injection, with a reset | their `scripts/mock-api.js` and `core-app/mocks/dashboard.html` | the in-app simulator panel |
 
 **Changed**
@@ -61,7 +61,7 @@ Nothing from those files reached this repository. Every runner, config and scrip
 
 | Idea | Their source | Here |
 | --- | --- | --- |
-| A named scenario catalogue with categories and human descriptions | `src/components/ChaosControlPanel.tsx:6-91` | `packages/lab-core/src/server/scenarios.ts` |
+| A named fault catalogue with human descriptions, switched on from a panel | `src/components/ChaosControlPanel.tsx:6-91` | `packages/lab-core/src/server/incidents.ts` |
 | Separating a timeout from an error as distinct failure types | `src/services/chaosEngine.ts:46-91` | `ApiResult` kinds, and the client-timeout scenario |
 | Human-readable reasoning strings attached to outcomes | `src/components/OrchestrationVisualization.tsx:86-97` | the event timeline's messages |
 | Reset by recreating state rather than mutating it back | `src/context/PaymentOrchestrationContext.tsx:268-275` | `resetStore()` |
@@ -83,7 +83,7 @@ Nothing from those files reached this repository. Every runner, config and scrip
 
 The layout follows the [Epic Web](https://github.com/epicweb-dev/react-fundamentals) conventions, checked against commit `9a215a1`.
 
-**Adopted.** Dot-numbered directories (`01.answers-later`), problem and solution colocated inside the exercise folder rather than in two distant top-level trees, a short concept README at the exercise level with a task README per step, and a `FINISHED.md` wrap-up.
+**Adopted.** Dot-numbered directories (`01.game-day`), problem and solution colocated inside the exercise folder rather than in two distant top-level trees, a short concept README at the exercise level with a task README per step, and a `FINISHED.md` wrap-up.
 
 **Changed.** The in-code markers are theirs in spirit and ours in glyph: 🦆 for a task, 🧾 for background you should not change, 💰 for a hint. Only the last one is also theirs, and it stays because money is what this lab is about. The koala and the owl belong to their workshop.
 
@@ -99,7 +99,7 @@ It also serves the exercise. All three lab files are plain functions returning p
 
 The design decisions live in one file, `packages/lab-core/src/ui/theme.ts`: one accent (jade), one grey (slate), one radius, and a status scale that is deliberately separate from the accent because status is data, not decoration. Every status carries an icon and a word as well as a colour, since colour alone is not an accessible signal.
 
-The design pass followed the [taste-skill](https://github.com/Leonxlnx/taste-skill) rules at commit `ccbc15639c97057cbfcf32ecebc38ef716e4bb37` (MIT, © 2026 Leonxlnx). Said plainly: that skill says in its own Section 13 that it is not for dense product UI, and this is product UI. The parts that transfer were applied, namely the design-system map that points at Radix Themes, the colour and shape consistency locks, the interactive-state rules (loading skeletons, empty and error states), the forbidden AI tells, and the pre-flight check. The landing-page parts, heroes, bento grids, eyebrow counts and scroll choreography, do not apply to a checkout console and were not forced onto one.
+The design pass followed the [taste-skill](https://github.com/Leonxlnx/taste-skill) rules at commit `ccbc15639c97057cbfcf32ecebc38ef716e4bb37` (MIT, © 2026 Leonxlnx). Said plainly: that skill says in its own Section 13 that it is not for dense product UI, and this is product UI. The parts that transfer were applied, namely the design-system map that points at Radix Themes, the colour and shape consistency locks, the interactive-state rules (loading skeletons, empty and error states), the forbidden AI tells, and the pre-flight check. The landing-page parts, heroes, bento grids, eyebrow counts and scroll choreography, do not apply to an operations console and were not forced onto one.
 
 ## Toolchain versions, verified against the npm registry on 2026-09-15
 

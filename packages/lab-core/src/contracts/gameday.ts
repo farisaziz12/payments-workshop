@@ -5,12 +5,8 @@
  * it comes back badly. These are the shapes that decision is made from.
  */
 
-import type { Currency } from './money';
-
-/** The methods Bigpdf accepts. A card authorises now; a SEPA debit is submitted now. */
-export type PaymentMethod = 'card' | 'sepa_debit';
-
-export type Country = 'DE' | 'FR' | 'GB';
+import type { Country, Currency, PaymentMethod } from './common';
+import { methodLabel } from './common';
 
 /**
  * A segment is the unit a payments team actually reasons about. Failures cluster by
@@ -31,10 +27,6 @@ export function segmentKey(segment: Segment): SegmentKey {
 
 export function segmentLabel(segment: Segment): string {
   return `${methodLabel(segment.method)} · ${segment.country} · ${segment.currency}`;
-}
-
-export function methodLabel(method: PaymentMethod): string {
-  return method === 'card' ? 'Card' : 'SEPA debit';
 }
 
 export type GatewayId = 'atlas' | 'borealis' | 'cirrus';
