@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@bigpdf/lab-core':
+        specifier: workspace:*
+        version: link:packages/lab-core
       '@playwright/test':
         specifier: 1.56.1
         version: 1.56.1
@@ -17,9 +20,6 @@ importers:
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@bigpdf/lab-core':
-        specifier: workspace:*
-        version: link:packages/lab-core
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.2
@@ -72,17 +72,17 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1(@types/node@22.20.2)(jsdom@30.0.1)(vite@8.3.0(@types/node@22.20.2))
 
-  exercises/01.answers-later/01.problem.answers-later:
+  exercises/01.game-day/01.problem.game-day:
     dependencies:
+      '@bigpdf/lab-core':
+        specifier: workspace:*
+        version: link:../../../packages/lab-core
       '@radix-ui/react-icons':
         specifier: 1.3.2
         version: 1.3.2(react@19.3.0)
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@bigpdf/lab-core':
-        specifier: workspace:*
-        version: link:../../../packages/lab-core
       next:
         specifier: 16.3.5
         version: 16.3.5(@babel/core@7.29.7)(@playwright/test@1.56.1)(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -96,17 +96,17 @@ importers:
         specifier: 19.3.0
         version: 19.3.0(react@19.3.0)
 
-  exercises/01.answers-later/01.solution.answers-later:
+  exercises/01.game-day/01.solution.game-day:
     dependencies:
+      '@bigpdf/lab-core':
+        specifier: workspace:*
+        version: link:../../../packages/lab-core
       '@radix-ui/react-icons':
         specifier: 1.3.2
         version: 1.3.2(react@19.3.0)
       '@radix-ui/themes':
         specifier: 3.3.0
         version: 3.3.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@bigpdf/lab-core':
-        specifier: workspace:*
-        version: link:../../../packages/lab-core
       next:
         specifier: 16.3.5
         version: 16.3.5(@babel/core@7.29.7)(@playwright/test@1.56.1)(@types/node@22.20.2)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)

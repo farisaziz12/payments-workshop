@@ -27,13 +27,17 @@ const ROOT = path.join(import.meta.dirname, '..');
  */
 const EXERCISES = {
   '01': {
-    slug: '01.answers-later',
-    exercise: '01.problem.answers-later',
-    solution: '01.solution.answers-later',
+    slug: '01.game-day',
+    exercise: '01.problem.game-day',
+    solution: '01.solution.game-day',
   },
 };
 
-const DEFAULT_PORTS = { exercise: 3001, solution: 3002 };
+/** Exercise n gets 3000 + 2n - 1 for the starter and 3000 + 2n for the solution. */
+function defaultPort(target, key) {
+  const n = Number(key);
+  return 3000 + 2 * n - (target === 'exercise' ? 1 : 0);
+}
 
 function die(message) {
   console.error(`\n  x ${message}\n`);
@@ -76,14 +80,14 @@ function appDir(target, entry) {
   return dir;
 }
 
-function pickPort(target, flagPort) {
+function pickPort(target, flagPort, key) {
   if (flagPort !== undefined) return flagPort;
   if (process.env.PORT) {
     const fromEnv = Number(process.env.PORT);
     if (!Number.isInteger(fromEnv)) die(`PORT is not a number: ${process.env.PORT}`);
     return fromEnv;
   }
-  return DEFAULT_PORTS[target];
+  return defaultPort(target, key);
 }
 
 function portIsFree(port) {
@@ -154,7 +158,7 @@ async function startApp(target, numberish, flagPort, { prefix } = {}) {
   const entry = resolveSlug(numberish);
   const { key, slug } = entry;
   const dir = appDir(target, entry);
-  const port = pickPort(target, flagPort);
+  const port = pickPort(target, flagPort, key);
 
   if (!(await portIsFree(port))) {
     die(
@@ -189,8 +193,9 @@ async function commandCompare(argv) {
   }
   // Check both ports before starting either one, so a busy second port cannot leave
   // the first app running in the background with nothing watching it.
+  const { key } = resolveSlug(rest[0]);
   for (const target of ['exercise', 'solution']) {
-    const candidate = DEFAULT_PORTS[target];
+    const candidate = defaultPort(target, key);
     if (!(await portIsFree(candidate))) {
       die(
         `Port ${candidate} is already in use, so compare cannot start the ${target} app.\n` +
@@ -221,7 +226,8 @@ async function commandCompare(argv) {
 async function commandReset(argv) {
   const { port, rest } = parseArgs(argv);
   const target = rest[1] === 'solution' ? 'solution' : 'exercise';
-  const chosen = pickPort(target, port);
+  const { key } = resolveSlug(rest[0]);
+  const chosen = pickPort(target, port, key);
   const url = `http://localhost:${chosen}/api/simulator/reset`;
   try {
     const response = await fetch(url, { method: 'POST' });
@@ -245,12 +251,19 @@ async function commandTestExercise(argv) {
   const { key } = resolveSlug(rest[0]);
   console.log(
     `\n  Running the behaviour tests against the STARTER for exercise ${key}.\n` +
-      `  Failures here are the point: each one names the TODO that still needs work.\n`,
+      `  Failures here are the point: each one names the task that still needs work.\n`,
   );
 
   const reportPath = path.join(os.tmpdir(), `bigpdf-exercise-${process.pid}.json`);
   const child = vitest(
-    ['run', '--project', 'exercise', '--reporter=default', '--reporter=json', `--outputFile.json=${reportPath}`],
+    [
+      'run',
+      '--project',
+      `exercise-${key}`,
+      '--reporter=default',
+      '--reporter=json',
+      `--outputFile.json=${reportPath}`,
+    ],
     { env: { CI: '1' } },
   );
 

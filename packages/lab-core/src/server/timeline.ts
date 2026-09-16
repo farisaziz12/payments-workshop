@@ -1,22 +1,13 @@
 /**
- * The readable event timeline.
+ * The readable log the console shows.
  *
- * Every actor writes to it: the customer's clicks, the application server's decisions,
- * the simulated provider's deliveries, and the simulator itself. It is the thing you
- * read when the UI and the server disagree.
+ * The orchestrator, the gateways and the chaos panel all write to it. It is what you read
+ * when the dashboard and your expectations disagree.
  */
-import type { EventOutcome, TimelineActor, TimelineEntry } from '../contracts/index';
-import { getStore, nextId } from './store';
+import type { TimelineActor, TimelineEntry } from '../contracts/index';
+import { getStore, nextId, MAX_TIMELINE_KEPT as MAX_ENTRIES } from './store';
 
-const MAX_ENTRIES = 200;
-
-export function logTimeline(entry: {
-  actor: TimelineActor;
-  message: string;
-  paymentId?: string;
-  eventId?: string;
-  outcome?: EventOutcome;
-}): TimelineEntry {
+export function logTimeline(entry: { actor: TimelineActor; message: string }): TimelineEntry {
   const store = getStore();
   const row: TimelineEntry = {
     id: nextId('tl'),

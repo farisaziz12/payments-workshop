@@ -5,29 +5,41 @@ import { defineConfig } from 'vitest/config';
 const here = import.meta.dirname;
 
 /**
- * Three test projects:
+ * Projects, per exercise:
  *
- *   core      unit tests for the shared plumbing. Must always pass.
- *   solution  behaviour tests pointed at the finished lab files. Must always pass.
- *   exercise  the same behaviour tests pointed at the starter. Expected to fail
- *             until the TODOs are done, which is what `pnpm test:exercise` reports.
+ *   core          unit tests for the shared plumbing. Must always pass.
+ *   solution-nn   behaviour tests pointed at the finished lab files. Must always pass.
+ *   exercise-nn   the same behaviour tests pointed at the starter. Expected to fail
+ *                 until the tasks are done, which is what `pnpm test:exercise` reports.
  */
-const behaviour = (name: 'exercise' | 'solution', appDir: string) => ({
+const EXERCISES = [{ key: '01', slug: '01.game-day', name: 'game-day' }];
+
+const core = {
+  '@bigpdf/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
+  '@bigpdf/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
+  '@bigpdf/lab-core/ui': path.join(here, 'packages/lab-core/src/ui/index.ts'),
+};
+
+const behaviour = (target: 'exercise' | 'solution', exercise: (typeof EXERCISES)[number]) => ({
   plugins: [react()],
   resolve: {
     alias: {
-      '@lab/app': path.join(here, appDir, 'src'),
-      '@bigpdf/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
-      '@bigpdf/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
-      '@bigpdf/lab-core/ui': path.join(here, 'packages/lab-core/src/ui/index.ts'),
+      [`@lab/${exercise.key}`]: path.join(
+        here,
+        'exercises',
+        exercise.slug,
+        `${exercise.key}.${target === 'exercise' ? 'problem' : 'solution'}.${exercise.name}`,
+        'src',
+      ),
+      ...core,
     },
   },
   test: {
-    name,
+    name: `${target}-${exercise.key}`,
     root: here,
     environment: 'jsdom',
     globals: false,
-    include: ['tests/behaviour/**/*.test.ts', 'tests/behaviour/**/*.test.tsx'],
+    include: [`tests/behaviour/${exercise.key}/**/*.test.ts`, `tests/behaviour/${exercise.key}/**/*.test.tsx`],
     setupFiles: [path.join(here, 'tests/setup.ts')],
   },
 });
@@ -36,12 +48,7 @@ export default defineConfig({
   test: {
     projects: [
       {
-        resolve: {
-          alias: {
-            '@bigpdf/lab-core/contracts': path.join(here, 'packages/lab-core/src/contracts/index.ts'),
-            '@bigpdf/lab-core/server': path.join(here, 'packages/lab-core/src/server/index.ts'),
-          },
-        },
+        resolve: { alias: core },
         test: {
           name: 'core',
           root: here,
@@ -49,8 +56,7 @@ export default defineConfig({
           include: ['packages/lab-core/test/**/*.test.ts'],
         },
       },
-      behaviour('exercise', 'exercises/01.answers-later/01.problem.answers-later'),
-      behaviour('solution', 'exercises/01.answers-later/01.solution.answers-later'),
+      ...EXERCISES.flatMap((exercise) => [behaviour('exercise', exercise), behaviour('solution', exercise)]),
     ],
   },
 });

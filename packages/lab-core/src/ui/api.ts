@@ -3,22 +3,12 @@
 /**
  * The browser's view of the application server.
  *
- * Every call returns an `ApiResult`, which forces the caller to answer one question
- * before rendering anything: did the server tell us what happened, or did we simply
- * fail to find out? Those are different, and conflating them is the bug this lab is about.
- *
- * Note that a declined payment arrives here as `{ ok: true, data: { status: 'failed' } }`.
- * It is a successful request carrying bad news.
+ * Every call returns an `ApiResult`, so the caller has to answer one question before it
+ * renders anything: did the server tell us what happened, or did we simply fail to find
+ * out? Those are different, and a console that conflates them will have you routing
+ * traffic away from a gateway that was never down.
  */
-import type {
-  ApiResult,
-  Entitlement,
-  PaymentMethod,
-  PurchaseView,
-  ScenarioId,
-  SimulatorState,
-  TimelineEntry,
-} from '../contracts/index';
+import type { ApiResult, DashboardState, IncidentId, TimelineEntry } from '../contracts/index';
 
 /** How long the browser waits before giving up on a request. */
 export const CLIENT_TIMEOUT_MS = 3000;
@@ -52,34 +42,25 @@ async function request<T>(path: string, init?: RequestInit, timeoutMs = CLIENT_T
 }
 
 export type LabApi = {
-  checkout(input: { purchaseId: string; workspaceId: string; method: PaymentMethod }): Promise<ApiResult<PurchaseView>>;
-  getPurchase(purchaseId: string): Promise<ApiResult<PurchaseView>>;
-  getEntitlement(workspaceId: string): Promise<ApiResult<Entitlement>>;
+  getDashboard(): Promise<ApiResult<DashboardState>>;
   getTimeline(): Promise<ApiResult<{ entries: TimelineEntry[] }>>;
-  getSimulator(): Promise<ApiResult<SimulatorState>>;
-  setScenario(scenarioId: ScenarioId): Promise<ApiResult<SimulatorState>>;
-  deliverNow(): Promise<ApiResult<{ delivered: number }>>;
-  reset(): Promise<ApiResult<{ ok: boolean }>>;
+  setRunning(running: boolean): Promise<ApiResult<DashboardState>>;
+  setIncident(incidentId: IncidentId, active: boolean): Promise<ApiResult<DashboardState>>;
+  burst(count: number): Promise<ApiResult<DashboardState>>;
+  reset(): Promise<ApiResult<DashboardState>>;
 };
 
 export const labApi: LabApi = {
-  checkout: (input) =>
-    request<PurchaseView>('/api/checkout', { method: 'POST', body: JSON.stringify(input) }),
-  getPurchase: (purchaseId) => request<PurchaseView>(`/api/purchases/${encodeURIComponent(purchaseId)}`),
-  getEntitlement: (workspaceId) => request<Entitlement>(`/api/entitlements/${encodeURIComponent(workspaceId)}`),
+  getDashboard: () => request<DashboardState>('/api/dashboard'),
   getTimeline: () => request<{ entries: TimelineEntry[] }>('/api/timeline'),
-  getSimulator: () => request<SimulatorState>('/api/simulator'),
-  setScenario: (scenarioId) =>
-    request<SimulatorState>('/api/simulator/scenario', { method: 'POST', body: JSON.stringify({ scenarioId }) }),
-  deliverNow: () => request<{ delivered: number }>('/api/simulator/deliver-now', { method: 'POST' }),
-  reset: () => request<{ ok: boolean }>('/api/simulator/reset', { method: 'POST' }),
+  setRunning: (running) =>
+    request<DashboardState>('/api/simulator/running', { method: 'POST', body: JSON.stringify({ running }) }),
+  setIncident: (incidentId, active) =>
+    request<DashboardState>('/api/simulator/incident', {
+      method: 'POST',
+      body: JSON.stringify({ incidentId, active }),
+    }),
+  burst: (count) =>
+    request<DashboardState>('/api/simulator/burst', { method: 'POST', body: JSON.stringify({ count }) }),
+  reset: () => request<DashboardState>('/api/simulator/reset', { method: 'POST' }),
 };
-
-/** Where the browser keeps the purchase id so a reload can find the purchase again. */
-export const PURCHASE_STORAGE_KEY = 'bigpdf.purchaseId';
-
-/** A readable, unique-enough id. The server never trusts it for anything but lookup. */
-export function mintPurchaseId(): string {
-  const random = Math.random().toString(36).slice(2, 10);
-  return `pur_${Date.now().toString(36)}${random}`;
-}

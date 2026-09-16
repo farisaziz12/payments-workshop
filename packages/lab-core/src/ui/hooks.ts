@@ -1,24 +1,31 @@
 'use client';
 
 /**
- * Polling plumbing. Supplied so the exercise can stay on payment state.
+ * Polling plumbing. Supplied so the exercise can stay on the payment decisions.
  *
- * The timeline and the simulator panel poll on their own, independently of anything
- * you write. That is deliberate: when the checkout screen and the server disagree,
- * the timeline keeps telling you the truth.
+ * The console polls independently of anything you write, and every poll also advances the
+ * simulated traffic. The numbers on screen are the server's own account of what your
+ * orchestrator did, not your code reporting on itself.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { ApiResult, Entitlement, SimulatorState, TimelineEntry } from '../contracts/index';
+import type { ApiResult, DashboardState, IncidentId, TimelineEntry } from '../contracts/index';
 import { labApi } from './api';
 
-export const POLL_INTERVAL_MS = 1500;
+export const POLL_INTERVAL_MS = 1000;
+
+type PollState<T> = {
+  /** The most recent answer, including the ones that say we did not get one. */
+  result: ApiResult<T> | null;
+  /** The last answer that actually arrived. Kept so a blip does not blank the screen. */
+  lastData: T | null;
+};
 
 /** Run `fetcher` now and then every `intervalMs`, while `enabled` stays true. */
 export function usePoll<T>(
   fetcher: () => Promise<ApiResult<T>>,
   { enabled = true, intervalMs = POLL_INTERVAL_MS }: { enabled?: boolean; intervalMs?: number } = {},
-): { result: ApiResult<T> | null; refresh: () => Promise<void> } {
-  const [result, setResult] = useState<ApiResult<T> | null>(null);
+): PollState<T> & { refresh: () => Promise<void> } {
+  const [state, setState] = useState<PollState<T>>({ result: null, lastData: null });
   const alive = useRef(true);
   const fetcherRef = useRef(fetcher);
 
@@ -29,7 +36,11 @@ export function usePoll<T>(
 
   const refresh = useCallback(async () => {
     const next = await fetcherRef.current();
-    if (alive.current) setResult(next);
+    if (!alive.current) return;
+    setState((previous) => ({
+      result: next,
+      lastData: next.ok ? next.data : previous.lastData,
+    }));
   }, []);
 
   useEffect(() => {
@@ -46,41 +57,38 @@ export function usePoll<T>(
     return () => clearInterval(timer);
   }, [enabled, intervalMs, refresh]);
 
-  return { result, refresh };
+  return { ...state, refresh };
 }
 
 export function useTimeline(enabled = true): TimelineEntry[] {
-  const { result } = usePoll(() => labApi.getTimeline(), { enabled });
-  return result?.ok ? result.data.entries : [];
+  const { lastData } = usePoll(() => labApi.getTimeline(), { enabled });
+  return lastData?.entries ?? [];
 }
 
-export function useSimulator(): {
-  state: SimulatorState | null;
-  setScenario: (id: SimulatorState['scenarioId']) => Promise<void>;
-  deliverNow: () => Promise<void>;
+export type DashboardControls = {
+  state: DashboardState | null;
+  /** The last poll did not come back. What is on screen is the previous snapshot. */
+  stale: boolean;
+  setRunning: (running: boolean) => Promise<void>;
+  setIncident: (incidentId: IncidentId, active: boolean) => Promise<void>;
+  burst: (count: number) => Promise<void>;
   reset: () => Promise<void>;
-} {
-  const { result, refresh } = usePoll(() => labApi.getSimulator());
-  const state = result?.ok ? result.data : null;
+};
+
+export function useDashboard(): DashboardControls {
+  const { result, lastData, refresh } = usePoll(() => labApi.getDashboard());
+
+  const after = async (call: Promise<unknown>): Promise<void> => {
+    await call;
+    await refresh();
+  };
 
   return {
-    state,
-    setScenario: async (id) => {
-      await labApi.setScenario(id);
-      await refresh();
-    },
-    deliverNow: async () => {
-      await labApi.deliverNow();
-      await refresh();
-    },
-    reset: async () => {
-      await labApi.reset();
-      await refresh();
-    },
+    state: lastData,
+    stale: result !== null && !result.ok,
+    setRunning: (running) => after(labApi.setRunning(running)),
+    setIncident: (incidentId, active) => after(labApi.setIncident(incidentId, active)),
+    burst: (count) => after(labApi.burst(count)),
+    reset: () => after(labApi.reset()),
   };
-}
-
-export function useEntitlement(workspaceId: string): Entitlement | null {
-  const { result } = usePoll(() => labApi.getEntitlement(workspaceId));
-  return result?.ok ? result.data : null;
 }

@@ -1,43 +1,53 @@
-import { expect, type APIRequestContext, type Page } from '@playwright/test';
+import { expect, type APIRequestContext } from '@playwright/test';
+import type { DashboardState, IncidentId, Segment, SegmentHealth } from '@bigpdf/lab-core/contracts';
 
-export const WORKSPACE_ID = 'ws_northstar';
-
-export type ScenarioId =
-  | 'instant-success'
-  | 'instant-decline'
-  | 'delayed-success'
-  | 'delayed-failure'
-  | 'client-timeout-success'
-  | 'duplicate-event'
-  | 'out-of-order-event';
-
-/** Every test starts from an empty server. */
-export async function resetLab(request: APIRequestContext): Promise<void> {
+/** Every test starts from an empty server with no faults switched on. */
+export async function resetLab(request: APIRequestContext): Promise<DashboardState> {
   const response = await request.post('/api/simulator/reset');
   expect(response.ok()).toBeTruthy();
+  return (await response.json()) as DashboardState;
 }
 
-export async function chooseScenario(request: APIRequestContext, scenarioId: ScenarioId): Promise<void> {
-  const response = await request.post('/api/simulator/scenario', { data: { scenarioId } });
+export async function setIncident(
+  request: APIRequestContext,
+  incidentId: IncidentId,
+  active: boolean,
+): Promise<DashboardState> {
+  const response = await request.post('/api/simulator/incident', { data: { incidentId, active } });
   expect(response.ok()).toBeTruthy();
+  return (await response.json()) as DashboardState;
 }
 
-const METHOD_LABEL: Record<'card' | 'bank_debit', string> = {
-  card: 'Card',
-  bank_debit: 'Bank debit',
-};
-
-export async function payWith(page: Page, method: 'card' | 'bank_debit'): Promise<void> {
-  // The method picker is a radio group, so drive it the way a keyboard user would.
-  await page.getByRole('radio', { name: METHOD_LABEL[method], exact: false }).first().click();
-  await page.getByTestId('pay').click();
+/**
+ * Run a fixed number of charges through the orchestrator and return the state after.
+ *
+ * Bursts rather than wall-clock waits: the assertions are then about what the routing did,
+ * not about how fast the machine running them happens to be.
+ */
+export async function sendTraffic(request: APIRequestContext, count: number): Promise<DashboardState> {
+  const response = await request.post('/api/simulator/burst', { data: { count } });
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as DashboardState;
 }
 
-/** Stop waiting for the provider's scheduled events and deliver them now. */
-export async function deliverScheduledEvents(page: Page): Promise<void> {
-  await page.getByTestId('deliver-now').click();
+export async function dashboard(request: APIRequestContext): Promise<DashboardState> {
+  const response = await request.get('/api/dashboard');
+  expect(response.ok()).toBeTruthy();
+  return (await response.json()) as DashboardState;
 }
 
-export async function timelineText(page: Page): Promise<string> {
-  return (await page.getByTestId('timeline').innerText()).toLowerCase();
+export const CARD_DE: Segment = { method: 'card', country: 'DE', currency: 'EUR' };
+export const CARD_GB: Segment = { method: 'card', country: 'GB', currency: 'GBP' };
+export const SEPA_DE: Segment = { method: 'sepa_debit', country: 'DE', currency: 'EUR' };
+
+export function segmentOf(state: DashboardState, segment: Segment): SegmentHealth {
+  const key = `${segment.method}:${segment.country}:${segment.currency}`;
+  const found = state.health.segments.find((entry) => entry.key === key);
+  expect(found, `no health for ${key}`).toBeDefined();
+  return found as SegmentHealth;
+}
+
+/** How many attempts in the window landed on a given gateway, for one segment. */
+export function attemptsOn(state: DashboardState, segment: Segment, gatewayId: string): number {
+  return segmentOf(state, segment).gateways.find((entry) => entry.gatewayId === gatewayId)?.attempts ?? 0;
 }

@@ -1,21 +1,23 @@
 /**
  * HTTP handlers for the lab's application server.
  *
- * The Next.js route files in each app are one-line re-exports of these, so the starter
- * and the solution share exactly the same server. Only the three lab files differ.
+ * The routing and retry decisions run here, on the server, because that is where they
+ * run in real life. Each app wires its own `src/lab/` functions in through
+ * `createHandlers`, so the starter and the solution share one server and differ only in
+ * the two files you are asked to write.
  *
- * One rule runs through all of them: a 4xx status means the request was malformed.
- * A declined payment is a perfectly successful HTTP 200 carrying `status: "failed"`.
- * That is what lets the browser tell "it failed" apart from "I could not find out".
+ * One rule runs through all of them: a 4xx means the request was malformed. A failed
+ * payment is a perfectly successful HTTP 200 that says the payment failed.
  */
-import type { PaymentMethod, PurchaseView } from '../contracts/index';
-import { DEMO_WORKSPACE_ID } from '../contracts/index';
-import { checkout } from './checkout';
-import { deliverDue, deliverEverythingNow, pendingDeliveries } from './delivery';
-import { decideEntitlement } from './entitlement';
-import { isScenarioId, scenarioSummaries } from './scenarios';
-import { getStore, latestAttempt, resetStore } from './store';
+import type { DashboardState } from '../contracts/index';
+import { GATEWAYS } from './gateways';
+import { currentHealth } from './health';
+import { incidentSummaries, isIncidentId } from './incidents';
+import type { LabPolicy } from './orchestrator';
+import { advance, burst, MAX_ATTEMPTS } from './orchestrator';
+import { getStore, resetStore } from './store';
 import { logTimeline, readTimeline } from './timeline';
+import { ATTEMPTS_PER_SECOND } from './traffic';
 
 const json = (body: unknown, status = 200): Response =>
   new Response(JSON.stringify(body), {
@@ -23,108 +25,108 @@ const json = (body: unknown, status = 200): Response =>
     headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   });
 
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+/** How many attempts the feed shows. Newest first. */
+const FEED_SIZE = 40;
 
-/**
- * Deliver anything the provider owes us before answering.
- * The timer usually got there first. This covers the times it did not.
- */
-function catchUp(): void {
-  deliverDue();
-}
-
-function isMethod(value: unknown): value is PaymentMethod {
-  return value === 'card' || value === 'bank_debit';
-}
-
-function isId(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0 && value.length <= 64;
-}
-
-export async function handleCheckout(request: Request): Promise<Response> {
-  catchUp();
-
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return json({ error: 'Body must be JSON' }, 400);
-  }
-
-  const { purchaseId, workspaceId, method } = (body ?? {}) as Record<string, unknown>;
-  if (!isId(purchaseId) || !isId(workspaceId) || !isMethod(method)) {
-    return json({ error: 'Expected { purchaseId, workspaceId, method: "card" | "bank_debit" }' }, 400);
-  }
-
-  const result = checkout({ purchaseId, workspaceId, method });
-
-  // Some scenarios hold the response back. Note the order: the payment is already
-  // recorded, so a browser that gives up waiting is only missing the answer.
-  if (result.responseDelayMs > 0) {
-    logTimeline({
-      actor: 'app',
-      message: `Holding the checkout response for ${Math.round(result.responseDelayMs / 1000)}s. The payment is already recorded as ${result.payment.status}.`,
-      paymentId: result.payment.paymentId,
-    });
-    await sleep(result.responseDelayMs);
-  }
-
-  const view: PurchaseView = { purchase: result.purchase, payment: result.payment };
-  return json(view);
-}
-
-export function handleGetPurchase(purchaseId: string): Response {
-  catchUp();
-  const purchase = getStore().purchases.get(purchaseId);
-  if (!purchase) return json({ error: `No purchase ${purchaseId}` }, 404);
-  const view: PurchaseView = { purchase, payment: latestAttempt(purchaseId) };
-  return json(view);
-}
-
-export function handleGetEntitlement(workspaceId: string): Response {
-  catchUp();
-  return json(decideEntitlement(workspaceId));
-}
-
-export function handleGetTimeline(): Response {
-  catchUp();
-  return json({ entries: readTimeline() });
-}
-
-export function handleGetSimulator(): Response {
-  catchUp();
+function dashboardState(): DashboardState {
   const store = getStore();
-  return json({
-    scenarioId: store.scenarioId,
-    scenarios: scenarioSummaries(),
-    pendingDeliveries: pendingDeliveries(),
-  });
+  return {
+    health: currentHealth(),
+    ledger: { ...store.ledger },
+    orchestrator: {
+      running: store.running,
+      attemptsPerSecond: ATTEMPTS_PER_SECOND,
+      maxAttempts: MAX_ATTEMPTS,
+      incidents: incidentSummaries(),
+    },
+    gateways: GATEWAYS,
+    recent: [...store.attempts].slice(-FEED_SIZE).reverse(),
+  };
 }
 
-export async function handleSetScenario(request: Request): Promise<Response> {
-  catchUp();
-  let body: unknown;
+export type LabHandlers = {
+  dashboard: () => Response;
+  timeline: () => Response;
+  setRunning: (request: Request) => Promise<Response>;
+  setIncident: (request: Request) => Promise<Response>;
+  burst: (request: Request) => Promise<Response>;
+  reset: () => Response;
+};
+
+export function createHandlers(policy: LabPolicy): LabHandlers {
+  /** Every read catches the simulation up first, so traffic flows while anyone is watching. */
+  const catchUp = (): void => {
+    advance(policy);
+  };
+
+  return {
+    dashboard(): Response {
+      catchUp();
+      return json(dashboardState());
+    },
+
+    timeline(): Response {
+      catchUp();
+      return json({ entries: readTimeline() });
+    },
+
+    async setRunning(request: Request): Promise<Response> {
+      catchUp();
+      const body = await readJson(request);
+      if (body === null) return json({ error: 'Body must be JSON' }, 400);
+      const { running } = body;
+      if (typeof running !== 'boolean') return json({ error: 'Expected { running: boolean }' }, 400);
+
+      const store = getStore();
+      store.running = running;
+      store.lastAdvanceAt = Date.now();
+      logTimeline({ actor: 'chaos', message: running ? 'Traffic resumed' : 'Traffic paused' });
+      return json(dashboardState());
+    },
+
+    async setIncident(request: Request): Promise<Response> {
+      catchUp();
+      const body = await readJson(request);
+      if (body === null) return json({ error: 'Body must be JSON' }, 400);
+      const { incidentId, active } = body;
+      if (!isIncidentId(incidentId) || typeof active !== 'boolean') {
+        return json({ error: 'Expected { incidentId, active: boolean }' }, 400);
+      }
+
+      const store = getStore();
+      if (active) store.activeIncidents.add(incidentId);
+      else store.activeIncidents.delete(incidentId);
+      logTimeline({
+        actor: 'chaos',
+        message: `${active ? 'Injected' : 'Cleared'} "${incidentId}"`,
+      });
+      return json(dashboardState());
+    },
+
+    async burst(request: Request): Promise<Response> {
+      const body = await readJson(request);
+      if (body === null) return json({ error: 'Body must be JSON' }, 400);
+      const { count } = body;
+      if (typeof count !== 'number' || !Number.isInteger(count) || count < 1 || count > 500) {
+        return json({ error: 'Expected { count: integer between 1 and 500 }' }, 400);
+      }
+      burst(policy, count);
+      return json(dashboardState());
+    },
+
+    reset(): Response {
+      resetStore();
+      logTimeline({ actor: 'chaos', message: 'Reset: attempts, captures, the ledger and every fault are gone' });
+      return json(dashboardState());
+    },
+  };
+}
+
+async function readJson(request: Request): Promise<Record<string, unknown> | null> {
   try {
-    body = await request.json();
+    const body: unknown = await request.json();
+    return typeof body === 'object' && body !== null ? (body as Record<string, unknown>) : {};
   } catch {
-    return json({ error: 'Body must be JSON' }, 400);
+    return null;
   }
-  const { scenarioId } = (body ?? {}) as Record<string, unknown>;
-  if (!isScenarioId(scenarioId)) return json({ error: `Unknown scenario: ${String(scenarioId)}` }, 400);
-
-  const store = getStore();
-  store.scenarioId = scenarioId;
-  logTimeline({ actor: 'simulator', message: `Scenario set to "${scenarioId}"` });
-  return handleGetSimulator();
-}
-
-export function handleReset(): Response {
-  resetStore();
-  logTimeline({ actor: 'simulator', message: 'Reset: purchases, payments, events and the timeline are gone' });
-  return json({ ok: true, workspaceId: DEMO_WORKSPACE_ID });
-}
-
-export function handleDeliverNow(): Response {
-  const delivered = deliverEverythingNow();
-  return json({ delivered });
 }

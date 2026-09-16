@@ -4,8 +4,9 @@ import { defineConfig, devices } from '@playwright/test';
  * One config, two targets. `pnpm e2e` runs the solution, `pnpm e2e:exercise` runs the
  * starter, and each boots only its own app so the two never share a port or a store.
  *
- * Workers are pinned to one: the lab's application server keeps its state in memory,
- * so parallel tests would be reading each other's payments.
+ * Workers are pinned to one: the lab's application server keeps its state in memory and
+ * the traffic generator is shared, so parallel tests would be reading each other's
+ * attempts and resetting each other's incidents.
  */
 const target = process.env.E2E_TARGET === 'exercise' ? 'exercise' : 'solution';
 const port = target === 'exercise' ? 3001 : 3002;
@@ -30,7 +31,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `node scripts/lab.mjs ${target} 01`,
-    url: `${baseURL}/api/timeline`,
+    url: `${baseURL}/api/dashboard`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     stdout: 'ignore',

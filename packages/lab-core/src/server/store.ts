@@ -1,61 +1,82 @@
 /**
  * The application server's memory.
  *
- * Everything the lab treats as authoritative lives here: purchases, payments,
- * the provider events already applied, the scheduled deliveries, and the timeline.
+ * Everything the lab treats as authoritative lives here: charges, attempts, what each
+ * gateway has already captured, the ledger and which faults are switched on.
  *
  * Two deliberate choices:
  *  - It is in-memory. Restarting the dev server clears it, which is the reset of last resort.
  *  - It hangs off `globalThis` so it survives hot reloads while you edit files. Plain objects
  *    and built-in Maps only: a class instance would fail `instanceof` after a module reload.
  */
-import type {
-  Payment,
-  ProviderEvent,
-  Purchase,
-  ScenarioId,
-  TimelineEntry,
-} from '../contracts/index';
+import type { Attempt, IncidentId, Ledger, Segment, TimelineEntry } from '../contracts/index';
 
-export type PendingDelivery = {
-  deliveryId: string;
-  /** Epoch milliseconds when the provider intends to deliver this event. */
-  dueAt: number;
-  event: ProviderEvent;
-  delivered: boolean;
+export type Charge = {
+  chargeId: string;
+  segment: Segment;
+  amountMinor: number;
+  attemptIds: string[];
+  settled: boolean;
+};
+
+export type Capture = {
+  idempotencyKey: string;
+  chargeId: string;
+  gatewayId: string;
 };
 
 export type LabState = {
-  purchases: Map<string, Purchase>;
-  payments: Map<string, Payment>;
-  /** Payment attempt ids per purchase, oldest first. A failed payment can be retried. */
-  attemptsByPurchase: Map<string, string[]>;
-  /** Every event id the server has already seen, applied or not. The idempotency key. */
-  seenEventIds: Set<string>;
-  pending: PendingDelivery[];
+  /** Newest last. Trimmed, because a game day runs for minutes and nobody reads row 4000. */
+  attempts: Attempt[];
+  charges: Map<string, Charge>;
+  /** What each gateway thinks it has captured, keyed the way a real gateway keys it. */
+  captures: Map<string, Capture>;
+  /** How many captures each charge has collected. More than one is a customer charged twice. */
+  capturesByCharge: Map<string, number>;
+  ledger: Ledger;
+  activeIncidents: Set<IncidentId>;
+  running: boolean;
+  /** Epoch milliseconds of the last simulated advance. */
+  lastAdvanceAt: number;
   timeline: TimelineEntry[];
-  scenarioId: ScenarioId;
-  counters: { payment: number; event: number; timeline: number; delivery: number };
-  timers: Set<ReturnType<typeof setTimeout>>;
+  counters: { charge: number; attempt: number; timeline: number };
+  /** Seeded, so the same game day happens for everybody and again after a reset. */
+  rng: number;
 };
 
-export const DEFAULT_SCENARIO: ScenarioId = 'instant-success';
+export const TRAFFIC_SEED = 0x5eed_1a5;
+export const MAX_ATTEMPTS_KEPT = 600;
+export const MAX_TIMELINE_KEPT = 200;
 
 const STORE_KEY = Symbol.for('bigpdf.lab.store');
 
 type GlobalWithStore = typeof globalThis & { [STORE_KEY]?: LabState };
 
+function emptyLedger(): Ledger {
+  return {
+    captured: 0,
+    capturedMinor: 0,
+    feesMinor: 0,
+    deduplicated: 0,
+    duplicateCaptures: 0,
+    misrouted: 0,
+    abandoned: 0,
+  };
+}
+
 function createState(): LabState {
   return {
-    purchases: new Map(),
-    payments: new Map(),
-    attemptsByPurchase: new Map(),
-    seenEventIds: new Set(),
-    pending: [],
+    attempts: [],
+    charges: new Map(),
+    captures: new Map(),
+    capturesByCharge: new Map(),
+    ledger: emptyLedger(),
+    activeIncidents: new Set(),
+    running: true,
+    lastAdvanceAt: Date.now(),
     timeline: [],
-    scenarioId: DEFAULT_SCENARIO,
-    counters: { payment: 0, event: 0, timeline: 0, delivery: 0 },
-    timers: new Set(),
+    counters: { charge: 0, attempt: 0, timeline: 0 },
+    rng: TRAFFIC_SEED,
   };
 }
 
@@ -65,38 +86,39 @@ export function getStore(): LabState {
   return holder[STORE_KEY];
 }
 
-/** Clear every trace of the current run, including scheduled deliveries. */
+/** Clear every trace of the current run. The same traffic replays from the same seed. */
 export function resetStore(): LabState {
   const holder = globalThis as GlobalWithStore;
-  const existing = holder[STORE_KEY];
-  if (existing) {
-    for (const timer of existing.timers) clearTimeout(timer);
-    existing.timers.clear();
-  }
   holder[STORE_KEY] = createState();
   return holder[STORE_KEY];
 }
 
-export function nextId(prefix: 'pay' | 'ev' | 'tl' | 'dlv'): string {
+export function nextId(prefix: 'chg' | 'att' | 'tl'): string {
   const store = getStore();
-  const key = ({ pay: 'payment', ev: 'event', tl: 'timeline', dlv: 'delivery' } as const)[prefix];
+  const key = ({ chg: 'charge', att: 'attempt', tl: 'timeline' } as const)[prefix];
   store.counters[key] += 1;
   return `${prefix}_${store.counters[key]}`;
 }
 
-export function latestAttempt(purchaseId: string): Payment | null {
+/**
+ * mulberry32. Small, fast, and most importantly deterministic: the same seed produces
+ * the same run, so a scenario an attendee saw is a scenario you can reproduce.
+ */
+export function random(): number {
   const store = getStore();
-  const attempts = store.attemptsByPurchase.get(purchaseId) ?? [];
-  const lastId = attempts.at(-1);
-  return lastId ? store.payments.get(lastId) ?? null : null;
+  store.rng = (store.rng + 0x6d2b_79f5) | 0;
+  let t = store.rng;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
 }
 
-export function recordAttempt(payment: Payment): void {
+export function recordAttempt(attempt: Attempt): void {
   const store = getStore();
-  store.payments.set(payment.paymentId, payment);
-  const attempts = store.attemptsByPurchase.get(payment.purchaseId) ?? [];
-  attempts.push(payment.paymentId);
-  store.attemptsByPurchase.set(payment.purchaseId, attempts);
-  const purchase = store.purchases.get(payment.purchaseId);
-  if (purchase) purchase.paymentId = payment.paymentId;
+  store.attempts.push(attempt);
+  if (store.attempts.length > MAX_ATTEMPTS_KEPT) {
+    store.attempts.splice(0, store.attempts.length - MAX_ATTEMPTS_KEPT);
+  }
+  const charge = store.charges.get(attempt.chargeId);
+  if (charge) charge.attemptIds.push(attempt.attemptId);
 }
