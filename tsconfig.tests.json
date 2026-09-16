@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["node", "vitest/globals"],
+    "paths": {
+      "@lab/01/*": ["./exercises/01.game-day/01.solution.game-day/src/*"],
+      "@lab/02/*": ["./exercises/02.grace-periods/02.solution.grace-periods/src/*"]
+    }
+  },
+  "include": ["tests/**/*.ts", "tests/**/*.tsx", "e2e/**/*.ts", "vitest.config.ts", "playwright.config.ts", "scripts/**/*.mjs"]
+}
