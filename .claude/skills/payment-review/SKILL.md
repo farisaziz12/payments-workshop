@@ -18,9 +18,9 @@ Work through these in order. For each finding, name the file and line, say what 
 
 ## 2. Failure versus non-answer
 
-- Is a request that timed out or lost its connection ever reported as a failed payment?
+- Is a request that never came back ever reported as a failed payment?
 - Is a decline carried as an HTTP 200 with `status: 'failed'`, with 4xx reserved for malformed requests?
-- After an unknown outcome, does the code reconcile with the server instead of guessing, and does it avoid offering a retry that could charge twice?
+- After a request that never came back, does the code re-read the server's state instead of guessing what happened to the payment?
 
 ## 3. State coverage
 

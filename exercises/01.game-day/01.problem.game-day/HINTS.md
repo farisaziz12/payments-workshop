@@ -54,7 +54,8 @@ of those three should never be retried at all.
   change their answer, and a burst of retries is what card testing looks like from their side.
 - `config` means it was routed somewhere that cannot accept it. That is a bug in task 1,
   and retrying it treats a bug as weather.
-- `technical` means nothing was decided. This one is worth another gateway.
+- `technical` means the gateway turned the request away without touching the money. Nobody
+  decided this payment, so it is worth another gateway.
 
 Then check `input.attemptsSoFar` against `input.maxAttempts` before you retry anything.
 
@@ -74,12 +75,15 @@ const next = chooseGateway({
 
 If `next.gatewayId` is null there is nowhere to go, so do not retry.
 
-The last line is the one that costs money if you get it wrong:
+One line left, and the starter gets it wrong on every attempt:
 
 ```ts
 idempotencyKey: input.attempt.idempotencyKey,
 ```
 
-The same key, not a new one. A gateway that timed out may already have taken the money. The
-same key gets that capture back and charges nobody twice. A fresh key looks like a brand new
-payment, and it is the customer who finds out.
+The same key, not a new one. The key is how a gateway tells your second attempt at this
+payment from a brand new payment, so it belongs to the charge rather than to the attempt.
+Mint a fresh one on every retry and one payment arrives at the gateways as three unrelated
+ones, with nothing tying them together when somebody has to reconcile them. Watch the key
+on the retry rows in the attempt feed: it should be the same string all the way down a
+charge.

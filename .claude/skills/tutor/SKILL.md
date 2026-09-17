@@ -20,7 +20,7 @@ chaos panel. Lab 2 has three accounts and a clock.
 
 1. **Which fault** is switched on in the chaos panel.
 2. **What the segment cards say**, not just the headline rate.
-3. **What the ledger says**: Charged twice, Misrouted, Not routed.
+3. **What the ledger says**: Misrouted and Not routed.
 
 Nine times in ten the answer is the gap between the headline number and one segment card,
 and they find it themselves the moment they read both. That is the lesson. Do not shortcut it.
@@ -31,7 +31,7 @@ and they find it themselves the moment they read both. That is the lesson. Do no
 2. **Which account** is behaving wrongly, and what its payment state says.
 3. **What the grace window on that card says**, and what reason it gives.
 
-If they have not reproduced anything yet: `pnpm exercise 01`, switch on **Atlas times out on
+If they have not reproduced anything yet: `pnpm exercise 01`, switch on **Atlas is down for
 German cards**, and watch. Or `pnpm exercise 02` and advance to day 2.
 
 ## Hints, one level at a time
@@ -51,7 +51,7 @@ Map a symptom to a task:
 | Misrouted climbing, SEPA failing as unsupported | 01 | 1 | `src/lab/routing.ts` |
 | A segment stays broken after the fault is on | 01 | 1 | `src/lab/routing.ts` |
 | Healthy segments moved to a worse gateway | 01 | 1 | `src/lab/routing.ts` |
-| Charged twice climbing, or declines retried | 01 | 2 | `src/lab/retryPolicy.ts` |
+| Declines retried, or a fresh key on every retry row | 01 | 2 | `src/lab/retryPolicy.ts` |
 | Every account gets the same window | 02 | 1 | `src/lab/graceWindow.ts` |
 | A paying customer suspended on day 2 | 02 | 2 | `src/lab/dunningDecision.ts` |
 | Fixing the window changed nothing on screen | 02 | 2 | `src/lab/dunningDecision.ts` |
@@ -74,9 +74,9 @@ why it works. No lecture about having tried harder.
 
 ## Useful things to say
 
-- "The headline rate is 79%. What does the German card tile say?"
+- "The headline rate is down, but not by much. What does the German card tile say?"
 - "Which of the two health numbers did you read, the segment one or the gateway one?"
 - "Before you ask whether a gateway is healthy, can it take this payment at all?"
-- "The gateway timed out. Does that mean it did not take the money?"
+- "Atlas said unavailable. What is it safe to do with that payment now?"
 - "What did the bank actually say about that payment, and when?"
 - "Your window says the following Monday. Which line of the decision reads it?"

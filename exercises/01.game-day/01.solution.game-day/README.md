@@ -22,7 +22,7 @@ counter that climbs all afternoon.
 **Then health, sliced to this segment.** `segmentHealthFor(input.health, input.segment)`.
 The snapshot also carries `health.gateways`, which is the same gateway measured across
 every segment at once. That number is what a status page shows, and routing on it moves
-British cards off Atlas because German cards are failing. The test for that is
+British cards off Atlas because German cards are being refused. The test for that is
 `leaves sterling cards where they were, because that segment is fine`.
 
 **Then priority.** Lowest number wins, which is the configured commercial preference.
@@ -43,9 +43,11 @@ the same answer, and a burst of retries is indistinguishable from card testing.
 Retrying is treating your own bug as weather.
 
 `technical` retries, on a gateway `chooseGateway` picks with `tried` excluded, and on
-`input.attempt.idempotencyKey`. That last one is the point of the whole task. A gateway that
-times out may well have captured, and the response is what went missing. The same key
-returns the original capture. A fresh key takes the money again.
+`input.attempt.idempotencyKey`. `gateway_unavailable` and `rate_limited` are both the
+gateway turning the request away before it goes near the money, so the payment is still
+there to be sent somewhere else. The key stays the charge's own: one payment, one key,
+however many gateways it takes, which is the only thing tying those attempts together for
+anyone who later has to reconcile them.
 
 Reusing `chooseGateway` here rather than writing a second selection rule keeps one policy in
 one place. When the routing rules change, the retry path changes with them.
@@ -54,5 +56,5 @@ one place. When the routing rules change, the retry path changes with them.
 
 Delivery retries with backoff and jitter, signature verification, gateway-side rate limit
 headers, per-issuer authorisation differences, network tokenisation, retries scheduled hours
-later rather than immediately, and settlement of any kind. The shapes are true. The details
-are illustrative.
+later rather than immediately, and settlement of any kind. Every gateway here also answers
+every request, which real ones do not. The shapes are true. The details are illustrative.

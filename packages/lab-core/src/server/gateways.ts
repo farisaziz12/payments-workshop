@@ -3,8 +3,11 @@
  *
  * None of this models a real provider. What it does model honestly is the part that
  * matters for routing: gateways do not all accept the same things, they do not all
- * authorise at the same rate, they do not all cost the same, and a request that times
- * out may well have taken the money anyway.
+ * authorise at the same rate, and they do not all cost the same.
+ *
+ * One rule holds everywhere in here. A gateway either captures and says so, or it
+ * captures nothing and says so. There is no third answer, so every failure in this lab
+ * is a failure you can act on.
  */
 import type { FailureCode, Gateway, GatewayId, Segment } from '../contracts/index';
 import { feeFor, supportsSegment } from '../contracts/index';
@@ -72,9 +75,10 @@ export type GatewayResponse = {
 /**
  * Send one attempt to one gateway.
  *
- * The timeout case is the interesting one. The gateway captures, then the response never
- * arrives. Retrying on the same idempotency key gets the original capture back. Retrying
- * with a fresh key takes the money a second time, and the customer is the one who finds out.
+ * Two things this always does, and both of them are what make a retry decision possible.
+ * A failure never captures: whatever comes back with `outcome: 'failed'` left the money
+ * exactly where it was. And an idempotency key is only ever spent once: send the same key
+ * twice and the second call returns the first result rather than taking the money again.
  */
 export function sendToGateway(input: {
   gatewayId: GatewayId;
@@ -92,7 +96,6 @@ export function sendToGateway(input: {
   const store = getStore();
   const existing = store.captures.get(input.idempotencyKey);
   if (existing) {
-    store.ledger.deduplicated += 1;
     return {
       outcome: 'succeeded',
       feeMinor: 0,
@@ -102,10 +105,8 @@ export function sendToGateway(input: {
 
   const incident = activeIncidentFor(gateway.id, input.segment);
   if (incident && random() < incident.failureRate) {
-    // A timeout means the request did not complete, not that nothing happened.
-    if (incident.failureCode === 'gateway_timeout') {
-      capture(input.idempotencyKey, input.chargeId, gateway.id);
-    }
+    // The gateway turned the request away. Nothing was captured and nothing was collected,
+    // which is exactly why this failure is safe to send somewhere else.
     return { outcome: 'failed', failureCode: incident.failureCode, feeMinor: 0, deduplicated: false };
   }
 
@@ -123,11 +124,8 @@ export function sendToGateway(input: {
   return { outcome: 'failed', failureCode: code, feeMinor: 0, deduplicated: false };
 }
 
-/** Record a capture, and notice when a charge collects a second one. */
+/** Record a capture against the key that paid for it. That key is now spent. */
 function capture(idempotencyKey: string, chargeId: string, gatewayId: GatewayId): void {
   const store = getStore();
   store.captures.set(idempotencyKey, { idempotencyKey, chargeId, gatewayId });
-  const count = (store.capturesByCharge.get(chargeId) ?? 0) + 1;
-  store.capturesByCharge.set(chargeId, count);
-  if (count > 1) store.ledger.duplicateCaptures += 1;
 }

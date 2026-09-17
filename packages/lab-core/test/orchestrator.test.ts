@@ -37,8 +37,31 @@ describe('the gateway simulator keeps its promises about idempotency', () => {
 
     if (first.outcome === 'succeeded') {
       expect(second.deduplicated).toBe(true);
-      expect(getStore().ledger.duplicateCaptures).toBe(0);
+      expect(getStore().ledger.captured).toBe(1);
     }
+  });
+
+  it('never takes the money on a failure', () => {
+    // The whole retry policy rests on this. A failed attempt has to leave the payment
+    // exactly where it was, or "send it somewhere else" is a coin toss with a customer.
+    getStore().activeIncidents.add('card-de-atlas-unavailable');
+
+    for (let index = 0; index < 60; index += 1) {
+      const response = sendToGateway({
+        gatewayId: 'atlas',
+        segment: CARD_DE,
+        chargeId: `chg_${index}`,
+        idempotencyKey: `idem_${index}`,
+        amountMinor: 2000,
+      });
+      if (response.outcome === 'failed') {
+        expect(getStore().captures.has(`idem_${index}`)).toBe(false);
+      }
+    }
+
+    const failures = 60 - getStore().ledger.captured;
+    expect(failures).toBeGreaterThan(0);
+    expect(getStore().ledger.capturedMinor).toBe(getStore().ledger.captured * 2000);
   });
 
   it('refuses a method it does not support, and counts it as misrouted', () => {

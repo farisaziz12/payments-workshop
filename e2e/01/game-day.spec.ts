@@ -6,19 +6,20 @@ import { CARD_DE, CARD_GB, SEPA_DE, attemptsOn, dashboard, resetLab, segmentOf, 
  *
  * Every assertion is about what the orchestrator did with live traffic, which is the only
  * thing that matters here. The starter fails all of these, and the failures are readable:
- * traffic stays on a gateway that is timing out, and money gets taken twice.
+ * traffic stays on a gateway that is turning it away, and SEPA debits go to gateways that
+ * cannot take them.
  */
 test.describe('routing under an incident', () => {
   test.beforeEach(async ({ request }) => {
     await resetLab(request);
   });
 
-  test('moves German cards off the failing gateway and recovers the segment', async ({ request }) => {
+  test('moves German cards off the refusing gateway and recovers the segment', async ({ request }) => {
     await sendTraffic(request, 120);
     const before = segmentOf(await dashboard(request), CARD_DE);
     expect(before.successRate).toBeGreaterThan(0.8);
 
-    await setIncident(request, 'card-de-atlas-timeout', true);
+    await setIncident(request, 'card-de-atlas-unavailable', true);
     await sendTraffic(request, 200);
 
     const after = segmentOf(await dashboard(request), CARD_DE);
@@ -27,7 +28,7 @@ test.describe('routing under an incident', () => {
   });
 
   test('leaves sterling cards on the primary gateway while German cards move', async ({ request }) => {
-    await setIncident(request, 'card-de-atlas-timeout', true);
+    await setIncident(request, 'card-de-atlas-unavailable', true);
     await sendTraffic(request, 300);
     const state = await dashboard(request);
 
@@ -45,11 +46,26 @@ test.describe('routing under an incident', () => {
     expect(state.ledger.misrouted).toBe(0);
   });
 
-  test('does not charge anyone twice when a gateway times out', async ({ request }) => {
-    await setIncident(request, 'card-de-atlas-timeout', true);
-    await sendTraffic(request, 300);
+  test('keeps one charge on one idempotency key, however many gateways it takes', async ({ request }) => {
+    await setIncident(request, 'card-de-atlas-unavailable', true);
+    // A short burst, so every attempt it produces still fits in the feed the dashboard
+    // returns. The retries worth reading happen before health has enough of a sample to
+    // move German cards off Atlas.
+    const state = await sendTraffic(request, 25);
+    expect(state.recent.some((attempt) => attempt.retryOf)).toBe(true);
 
-    const state = await dashboard(request);
-    expect(state.ledger.duplicateCaptures).toBe(0);
+    // The key belongs to the charge, not to the attempt. A retry that mints a fresh one
+    // turns a single payment into several as far as the gateways are concerned.
+    const keysPerCharge = new Map<string, Set<string>>();
+    for (const attempt of state.recent) {
+      if (!attempt.gatewayId) continue;
+      const keys = keysPerCharge.get(attempt.chargeId) ?? new Set<string>();
+      keys.add(attempt.idempotencyKey);
+      keysPerCharge.set(attempt.chargeId, keys);
+    }
+
+    for (const [chargeId, keys] of keysPerCharge) {
+      expect([...keys], `charge ${chargeId} was sent under more than one key`).toHaveLength(1);
+    }
   });
 });

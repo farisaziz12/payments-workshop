@@ -9,8 +9,8 @@ Your job is to get the money moving again, using an orchestrator you write.
 
 - Why an overall success rate hides an outage, and what to look at instead.
 - Why eligibility comes before preference: a gateway that cannot take SEPA is not a fallback.
-- Which failures may be retried elsewhere, which must never be, and why the difference is
-  the line between a recovered payment and a customer charged twice.
+- Which failures may be retried elsewhere, which must never be, and why the failure code is
+  the only thing that answers that.
 - What an idempotency key is actually for.
 
 ## ⏱ Time
@@ -68,20 +68,27 @@ answer when nothing eligible is left.
 
 **🦆 Task 2, `retryPolicy.ts`.** `planRetry` currently retries everything, on the gateway
 that just failed, with a fresh idempotency key. Make the failure kind decide, and when you
-do retry, carry the original key.
+do retry, carry the charge's original key.
 
 Start with task 1. Task 2 is easier once routing works, and it can reuse `chooseGateway`.
 
 ## 🌪 Run the game day
 
-1. Open the console and let it settle. Every segment green, roughly 94% overall.
-2. Switch on **Atlas times out on German cards** in the chaos panel.
-3. Watch the overall rate. It drops to about 79%, which looks like a bad afternoon rather
-   than an outage. Now look at the segment cards.
-4. Fix task 1 and watch German cards move. The file is hot reloaded, so the next attempt
-   already uses your new code.
-5. Fix task 2 and watch the "Charged twice" counter stop climbing.
-6. Switch on **Borealis drops German SEPA debits**. There is nowhere to fail over to. Decide
+1. Open the console and let it settle. Nobody has broken anything yet and two segments are
+   already on the floor: both SEPA tiles sit at zero and "Misrouted" climbs, because the
+   starter sends every payment to the first gateway in the table and Atlas has no SEPA.
+2. Get the eligibility half of task 1 working. Both SEPA tiles come back and the headline
+   settles around 94%. Files are hot reloaded, so the next attempt already uses your code.
+3. Switch on **Atlas is down for German cards** in the chaos panel.
+4. Watch the headline rate and the German card tile fall by very different amounts. German
+   cards are about a third of the traffic and the other four segments are untouched, so the
+   headline looks like a bad afternoon while that one tile drops to roughly a fifth of its
+   normal rate. That gap is the whole lab.
+5. Finish task 1 by reading health for *this segment*. German cards move to Borealis, the
+   tile comes back to the mid eighties, and British cards stay on Atlas.
+6. Fix task 2. Declines stop being retried, retries stop going back to the gateway that
+   just refused them, and the key on the retry rows in the attempt feed stops changing.
+7. Switch on **Borealis drops German SEPA debits**. There is nowhere to fail over to. Decide
    what your code should do about that, then check it does it.
 
 ## ✅ You'll know you're done when
@@ -89,7 +96,8 @@ Start with task 1. Task 2 is easier once routing works, and it can reuse `choose
 - [ ] SEPA debits only ever reach Borealis, and "Misrouted" stays at zero.
 - [ ] With the Atlas fault on, German cards recover to roughly their normal rate.
 - [ ] British cards stay on Atlas throughout, because that segment was never in trouble.
-- [ ] "Charged twice" stays at zero with the timeout fault running.
+- [ ] A declined card makes one attempt, not three.
+- [ ] Every retry row in the attempt feed carries the same key as the attempt it retried.
 - [ ] `pnpm test:exercise 01` reports no remaining failures.
 
 ```bash

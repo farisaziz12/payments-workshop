@@ -55,7 +55,7 @@ export function healthy(): HealthSnapshot {
 }
 
 /**
- * Atlas is timing out on German cards and nothing else.
+ * Atlas is refusing German cards and nothing else.
  *
  * Note what this does to Atlas overall: its global success rate drops well below the
  * degraded threshold even though British cards on Atlas are untouched. That gap is the
@@ -65,7 +65,12 @@ export function atlasBrokenForGermanCards(): HealthSnapshot {
   return summariseHealth(
     [
       ...repeat(20, () =>
-        attempt({ segment: CARD_DE, gatewayId: 'atlas', outcome: 'failed', failureCode: 'gateway_timeout' }),
+        attempt({
+          segment: CARD_DE,
+          gatewayId: 'atlas',
+          outcome: 'failed',
+          failureCode: 'gateway_unavailable',
+        }),
       ),
       ...repeat(16, () => attempt({ segment: CARD_GB, gatewayId: 'atlas', outcome: 'succeeded' })),
       ...repeat(20, () => attempt({ segment: SEPA_DE, gatewayId: 'borealis', outcome: 'succeeded' })),

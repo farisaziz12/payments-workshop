@@ -8,8 +8,9 @@
  *               card testing looks like from their side.
  *   config      we sent it somewhere that cannot take it. Retrying treats a bug as
  *               weather. Fix the routing.
- *   technical   nothing was decided. Another gateway is worth a try, on the same
- *               idempotency key, because the first one may have taken the money already.
+ *   technical   the gateway turned the request away and captured nothing. Another
+ *               gateway is worth a try, on the same idempotency key, because one
+ *               payment should be one payment wherever it ends up.
  */
 import type { RetryInput, RetryPlan } from '@bigpdf/lab-core/contracts';
 import { failureKind } from '@bigpdf/lab-core/contracts';
@@ -44,7 +45,8 @@ export function planRetry(input: RetryInput): RetryPlan {
   return {
     retry: true,
     gatewayId: next.gatewayId,
-    // The same key. This is the line that stops a timed out capture becoming two charges.
+    // The same key. One charge is one key, so the gateways see one payment being retried
+    // rather than three separate ones.
     idempotencyKey: input.attempt.idempotencyKey,
     reason: `Technical failure, so trying ${next.gatewayId} on the same idempotency key`,
   };

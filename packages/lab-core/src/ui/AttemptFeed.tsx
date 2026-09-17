@@ -73,15 +73,16 @@ function AttemptRow({ attempt }: { attempt: Attempt }) {
         ) : null}
 
         {attempt.retryOf ? (
-          <Badge color="amber" variant="outline" size="1">
-            retry
-          </Badge>
-        ) : null}
-
-        {attempt.deduplicated ? (
-          <Badge color="jade" variant="outline" size="1" data-testid="attempt-deduplicated">
-            same key, not charged twice
-          </Badge>
+          <>
+            <Badge color="amber" variant="outline" size="1">
+              retry
+            </Badge>
+            {/* The key a retry carries is the whole of task 2's second half. Show it, so a
+                fresh key on every attempt is something you can see rather than reason about. */}
+            <Code size="1" variant="ghost" color="gray" data-testid="attempt-key">
+              {attempt.idempotencyKey}
+            </Code>
+          </>
         ) : null}
 
         {failure && attempt.failureCode ? (

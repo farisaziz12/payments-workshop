@@ -62,7 +62,7 @@ Nothing from those files reached this repository. Every runner, config and scrip
 | Idea | Their source | Here |
 | --- | --- | --- |
 | A named fault catalogue with human descriptions, switched on from a panel | `src/components/ChaosControlPanel.tsx:6-91` | `packages/lab-core/src/server/incidents.ts` |
-| Separating a timeout from an error as distinct failure types | `src/services/chaosEngine.ts:46-91` | `ApiResult` kinds, and the client-timeout scenario |
+| Separating transport failures from decided ones as distinct types | `src/services/chaosEngine.ts:46-91` | `ApiResult` kinds on the client, and `FailureKind` on the server |
 | Human-readable reasoning strings attached to outcomes | `src/components/OrchestrationVisualization.tsx:86-97` | the event timeline's messages |
 | Reset by recreating state rather than mutating it back | `src/context/PaymentOrchestrationContext.tsx:268-275` | `resetStore()` |
 | The vestigial `'pending'` payment status | `src/types/payment.ts:96` (set then immediately overwritten at `chaosEngine.ts:108-123`, so never observable) | a real `processing` state with its own timeline |

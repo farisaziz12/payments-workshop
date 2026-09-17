@@ -21,14 +21,14 @@ type IncidentDefinition = {
 
 export const INCIDENTS: ReadonlyArray<IncidentDefinition> = [
   {
-    id: 'card-de-atlas-timeout',
-    name: 'Atlas times out on German cards',
+    id: 'card-de-atlas-unavailable',
+    name: 'Atlas is down for German cards',
     gatewayId: 'atlas',
     segmentKey: 'card:DE:EUR',
-    failureCode: 'gateway_timeout',
+    failureCode: 'gateway_unavailable',
     failureRate: 0.8,
     description:
-      'Four in five German card attempts on Atlas time out. Atlas is fine for every other segment, and overall success barely moves.',
+      'Four in five German card attempts on Atlas come back "gateway unavailable", and nothing is captured. Every other segment on Atlas is fine, so the headline moves far less than the German card tile does.',
     teaches: 'Slice by segment and gateway, then move only the traffic that is actually hurting.',
   },
   {

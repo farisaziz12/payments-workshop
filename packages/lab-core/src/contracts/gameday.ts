@@ -64,7 +64,6 @@ export type FailureCode =
   | 'insufficient_funds'
   | 'expired_card'
   | 'invalid_account'
-  | 'gateway_timeout'
   | 'gateway_unavailable'
   | 'rate_limited'
   | 'unsupported_method';
@@ -73,8 +72,9 @@ export type FailureCode =
  * `hard`        the issuer or the bank answered, and the answer was no. Sending the same
  *               payment somewhere else does not change that answer. It does get you
  *               flagged for card testing.
- * `technical`   nobody decided anything. The request did not complete. Another gateway
- *               may well succeed, on the same idempotency key.
+ * `technical`   the gateway refused the request before it went anywhere near the money.
+ *               Nobody decided the payment, nothing was captured, and another gateway
+ *               may well succeed.
  * `config`      the attempt should never have been sent there. Routing is wrong, and
  *               retrying it anywhere is treating a bug as weather.
  */
@@ -85,7 +85,6 @@ export const FAILURE_KIND: Readonly<Record<FailureCode, FailureKind>> = {
   insufficient_funds: 'hard',
   expired_card: 'hard',
   invalid_account: 'hard',
-  gateway_timeout: 'technical',
   gateway_unavailable: 'technical',
   rate_limited: 'technical',
   unsupported_method: 'config',
@@ -100,7 +99,6 @@ export const FAILURE_LABEL: Readonly<Record<FailureCode, string>> = {
   insufficient_funds: 'Insufficient funds',
   expired_card: 'Expired card',
   invalid_account: 'Invalid account',
-  gateway_timeout: 'Gateway timeout',
   gateway_unavailable: 'Gateway unavailable',
   rate_limited: 'Rate limited',
   unsupported_method: 'Method not supported there',
@@ -112,8 +110,8 @@ export type AttemptOutcome = 'succeeded' | 'failed' | 'no_route';
  * One request to one gateway.
  *
  * A charge can have several attempts. They share a `chargeId`, and they should share an
- * `idempotencyKey` too: that key is the only thing standing between a retried timeout
- * and a customer charged twice.
+ * `idempotencyKey` too: that key is how a gateway tells your second attempt at one
+ * payment from a brand new payment.
  */
 export type Attempt = {
   attemptId: string;
@@ -129,8 +127,6 @@ export type Attempt = {
   /** Why the orchestrator chose this gateway, or why it chose nothing. */
   reason: string;
   feeMinor: number;
-  /** The gateway had already captured this key. Charging twice is what we avoided. */
-  deduplicated?: boolean;
   at: string;
   sequence: number;
 };
@@ -233,7 +229,10 @@ export type RetryPlan =
   | { retry: true; gatewayId: GatewayId; idempotencyKey: string; reason: string };
 
 /** A fault the chaos panel can switch on. Deterministic: same fault, same behaviour. */
-export type IncidentId = 'card-de-atlas-timeout' | 'sepa-de-borealis-outage' | 'cirrus-rate-limit';
+export type IncidentId =
+  | 'card-de-atlas-unavailable'
+  | 'sepa-de-borealis-outage'
+  | 'cirrus-rate-limit';
 
 export type IncidentSummary = {
   id: IncidentId;
@@ -260,10 +259,6 @@ export type Ledger = {
   captured: number;
   capturedMinor: number;
   feesMinor: number;
-  /** Charges the gateway had already taken, saved by a reused idempotency key. */
-  deduplicated: number;
-  /** Charges taken twice, because a retry arrived with a fresh key. */
-  duplicateCaptures: number;
   /** Attempts routed to a gateway that cannot accept them. */
   misrouted: number;
   /** Charges the orchestrator refused to route anywhere. */

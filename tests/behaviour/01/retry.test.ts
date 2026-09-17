@@ -68,27 +68,24 @@ describe('[Task 2] a decided failure is never retried somewhere else', () => {
 });
 
 describe('[Task 2] a technical failure is retried, carefully', () => {
-  it('retries a timeout', () => {
-    expect(plan({ failureCode: 'gateway_timeout' }).retry).toBe(true);
+  it('retries a gateway that is unavailable, and one that is rate limiting', () => {
+    // Neither one captured anything, so the payment is still there to be sent elsewhere.
+    expect(plan({ failureCode: 'gateway_unavailable' }).retry).toBe(true);
+    expect(plan({ failureCode: 'rate_limited' }).retry).toBe(true);
   });
 
   it('retries somewhere other than the gateway that just failed', () => {
-    const result = plan({ failureCode: 'gateway_timeout', gatewayId: 'atlas', tried: ['atlas'] });
+    const result = plan({ failureCode: 'gateway_unavailable', gatewayId: 'atlas', tried: ['atlas'] });
     expect(result.retry).toBe(true);
     if (result.retry) expect(result.gatewayId).not.toBe('atlas');
   });
 
   it('reuses the original idempotency key', () => {
-    // A gateway that timed out may already have the money. The same key gets that capture
-    // back. A fresh key takes it again, and the customer is the one who notices.
-    const result = plan({ failureCode: 'gateway_timeout' });
+    // One charge, one key. The key is how a gateway tells a second attempt at this payment
+    // from a brand new payment, and a fresh key throws that away on every retry.
+    const result = plan({ failureCode: 'gateway_unavailable' });
     expect(result.retry).toBe(true);
     if (result.retry) expect(result.idempotencyKey).toBe(KEY);
-  });
-
-  it('retries a gateway that is unavailable, and one that is rate limiting', () => {
-    expect(plan({ failureCode: 'gateway_unavailable' }).retry).toBe(true);
-    expect(plan({ failureCode: 'rate_limited' }).retry).toBe(true);
   });
 
   it('gives up when there is nowhere else to send it', () => {
@@ -103,7 +100,7 @@ describe('[Task 2] a technical failure is retried, carefully', () => {
   });
 
   it('stops at the attempt ceiling', () => {
-    const result = plan({ failureCode: 'gateway_timeout', attemptsSoFar: MAX_ATTEMPTS });
+    const result = plan({ failureCode: 'rate_limited', attemptsSoFar: MAX_ATTEMPTS });
     expect(result.retry).toBe(false);
   });
 });

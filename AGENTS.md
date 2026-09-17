@@ -13,8 +13,9 @@ Faris Aziz. Two labs, 25 minutes each, for frontend, full-stack and lead enginee
 knowledge is not assumed.
 
 **Lab 1, the game day.** Bigpdf takes payments across five segments of method, country and
-currency, routed to three gateways by an orchestrator. Somebody injects a fault into one
-gateway for one segment, and the overall success rate barely moves while that segment dies.
+currency, routed to three gateways by an orchestrator. Somebody takes one gateway down for
+one segment, and the overall success rate drops far less than that segment does, which is
+exactly enough to make an outage look like a bad afternoon.
 
 **Lab 2, the grace period.** Billing suspends an account a day after the invoice was due.
 The payment was a SEPA direct debit and the money is still in flight, because the grace

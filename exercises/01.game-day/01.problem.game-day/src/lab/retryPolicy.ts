@@ -16,12 +16,12 @@
  * 🧾 `failureKind(code)` sorts a failure into three kinds, and the kind is the whole
  *    decision:
  *      hard        the issuer or the bank answered, and the answer was no
- *      technical   nobody decided anything. The request did not complete
+ *      technical   the gateway turned the request away without touching the money
  *      config      it was sent somewhere that cannot accept it. That is your bug
  *
- * 🧾 The idempotency key is not decoration. A gateway that timed out may well have taken
- *    the money. Retrying on the same key gets the original capture back. Retrying on a
- *    fresh key takes it a second time.
+ * 🧾 The idempotency key is not decoration. It is how a gateway tells your second attempt
+ *    at one payment from a brand new payment. One charge, one key, however many gateways
+ *    it takes.
  */
 import type { RetryInput, RetryPlan } from '@bigpdf/lab-core/contracts';
 
@@ -29,12 +29,12 @@ export function planRetry(input: RetryInput): RetryPlan {
   // 🦆 Task 2: this retries everything, on the gateway that just failed, with a brand
   //    new idempotency key every time.
   //
-  //    Three things are wrong with it, and two of them cost real money:
+  //    Three things are wrong with it, and the console shows all three:
   //      - a hard decline is retried, which is what card testing looks like to an issuer,
-  //      - a timeout is retried with a fresh key, so the customer is charged twice.
-  //        Watch the "Charged twice" counter,
   //      - the retry goes back to the gateway that just failed, which is the one place
-  //        it is least likely to work.
+  //        it is least likely to work,
+  //      - every attempt carries a fresh key, so one payment arrives at the gateways as
+  //        three unrelated ones. Watch the key on the retry rows in the attempt feed.
   //
   //    What you return is a `RetryPlan`, one of two shapes:
   //      { retry: false, reason }

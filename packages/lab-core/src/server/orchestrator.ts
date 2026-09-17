@@ -101,7 +101,6 @@ export function runCharge(policy: LabPolicy, segment: Segment, now: number = Dat
       reason: decision.reason,
       retryOf: previous?.attemptId,
       feeMinor: response.feeMinor,
-      deduplicated: response.deduplicated,
       now,
     });
     recordAttempt(attempt);
@@ -151,7 +150,6 @@ function buildAttempt(input: {
   reason: string;
   retryOf?: string;
   feeMinor?: number;
-  deduplicated?: boolean;
   now: number;
 }): Attempt {
   const store = getStore();
@@ -167,7 +165,6 @@ function buildAttempt(input: {
     retryOf: input.retryOf,
     reason: input.reason,
     feeMinor: input.feeMinor ?? 0,
-    deduplicated: input.deduplicated,
     at: new Date(input.now).toISOString(),
     sequence: store.counters.attempt,
   };

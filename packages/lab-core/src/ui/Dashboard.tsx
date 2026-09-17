@@ -123,12 +123,6 @@ function LedgerStrip({ ledger }: { ledger: Ledger }) {
       alarming: false,
     },
     {
-      label: 'Charged twice',
-      value: String(ledger.duplicateCaptures),
-      testid: 'ledger-duplicates',
-      alarming: ledger.duplicateCaptures > 0,
-    },
-    {
       label: 'Misrouted',
       value: String(ledger.misrouted),
       testid: 'ledger-misrouted',
@@ -143,7 +137,7 @@ function LedgerStrip({ ledger }: { ledger: Ledger }) {
   ];
 
   return (
-    <Grid columns={{ initial: '2', sm: '5' }} gap="3">
+    <Grid columns={{ initial: '2', sm: '4' }} gap="3">
       {cells.map((cell) => (
         <Flex key={cell.testid} direction="column" gap="1">
           <Text size="1" color="gray">

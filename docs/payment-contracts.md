@@ -32,8 +32,12 @@ What kind of failure it was decides what you may do next, and nothing else does.
 | Kind | Codes | What you may do |
 | --- | --- | --- |
 | `hard` | `issuer_declined`, `insufficient_funds`, `expired_card`, `invalid_account` | Nothing. Somebody authoritative said no |
-| `technical` | `gateway_timeout`, `gateway_unavailable`, `rate_limited` | Retry elsewhere, on the same idempotency key |
+| `technical` | `gateway_unavailable`, `rate_limited` | Retry elsewhere, on the same idempotency key |
 | `config` | `unsupported_method` | Fix the routing. This is your bug |
+
+A technical failure in this lab is a gateway turning the request away before it goes near
+the money. Nothing is captured and nothing is collected, which is what makes sending the
+payment somewhere else a safe thing to do rather than a gamble.
 
 ```mermaid
 flowchart TD
@@ -57,16 +61,18 @@ is built around:
 - `snapshot.segments[n].gateways[m]` is one gateway inside one segment. This is the number a
   routing decision is made from.
 - `snapshot.gateways[m]` is the same gateway across every segment at once. This is the
-  number a status page shows. Atlas failing German cards drags it down while British cards
+  number a status page shows. Atlas refusing German cards drags it down while British cards
   on Atlas are fine, and a policy that reads it moves traffic that was never in trouble.
 
 ### Idempotency
 
-A gateway that times out may already have captured. The simulator models this exactly: a
-timeout records the capture, and the response is what went missing.
+The key is how a gateway tells a second attempt at one payment from a second payment. The
+simulator enforces it: a key is spent once, and sending the same key again returns the
+original capture rather than taking the money a second time.
 
-- The same idempotency key returns the original capture. Nobody is charged twice.
-- A fresh key looks like a new payment, so the money goes a second time.
+That means the key belongs to the charge, not to the attempt. A retry that mints a fresh
+one hands the gateways three unrelated payments and leaves nobody able to tie them back
+together.
 
 One charge, one key, however many attempts it takes.
 
@@ -126,9 +132,9 @@ type ApiResult<T> =
   | { ok: false; kind: 'http'; status: number };
 ```
 
-`ok: false` means the browser does not know. It never means the thing failed. Something
-that failed comes back as a perfectly good HTTP 200 saying so, and a 4xx means the request
-was malformed.
+`ok: false` means the browser did not get an answer out of the lab's own application
+server. It never means the thing failed. Something that failed comes back as a perfectly
+good HTTP 200 saying so, and a 4xx means the request was malformed.
 
 ## 🚧 Deliberately out of scope
 

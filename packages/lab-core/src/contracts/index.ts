@@ -15,8 +15,9 @@ export * from './billing';
 /**
  * What a browser call to the application server returns.
  *
- * `ok: false` means the browser does not know the outcome. It never means the thing
- * failed. Something that failed comes back as a perfectly good HTTP 200 saying so.
+ * `ok: false` means the browser did not get an answer out of the application server. It
+ * never means the thing failed. Something that failed comes back as a perfectly good
+ * HTTP 200 saying so.
  */
 export type ApiResult<T> =
   | { ok: true; data: T }

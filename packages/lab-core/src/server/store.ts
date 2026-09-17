@@ -31,8 +31,6 @@ export type LabState = {
   charges: Map<string, Charge>;
   /** What each gateway thinks it has captured, keyed the way a real gateway keys it. */
   captures: Map<string, Capture>;
-  /** How many captures each charge has collected. More than one is a customer charged twice. */
-  capturesByCharge: Map<string, number>;
   ledger: Ledger;
   activeIncidents: Set<IncidentId>;
   running: boolean;
@@ -57,8 +55,6 @@ function emptyLedger(): Ledger {
     captured: 0,
     capturedMinor: 0,
     feesMinor: 0,
-    deduplicated: 0,
-    duplicateCaptures: 0,
     misrouted: 0,
     abandoned: 0,
   };
@@ -69,7 +65,6 @@ function createState(): LabState {
     attempts: [],
     charges: new Map(),
     captures: new Map(),
-    capturesByCharge: new Map(),
     ledger: emptyLedger(),
     activeIncidents: new Set(),
     running: true,

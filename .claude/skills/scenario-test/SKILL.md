@@ -38,7 +38,7 @@ curl $BASE/api/entitlements/ws_northstar        # active / payment_succeeded
 curl $BASE/api/timeline                         # what the server did, and why
 ```
 
-Scenario ids: `instant-success`, `instant-decline`, `delayed-success`, `delayed-failure`, `client-timeout-success`, `duplicate-event`, `out-of-order-event`.
+Scenario ids: `instant-success`, `instant-decline`, `delayed-success`, `delayed-failure`, `duplicate-event`, `out-of-order-event`.
 
 ## What each scenario should produce
 
@@ -46,7 +46,6 @@ Scenario ids: `instant-success`, `instant-decline`, `delayed-success`, `delayed-
 | --- | --- | --- |
 | `delayed-success` | `succeeded` | `applied` |
 | `delayed-failure` | `failed` | `applied` |
-| `client-timeout-success` | `succeeded`, while the browser saw a timeout | the response being held |
 | `duplicate-event` | `succeeded` | `ignored_duplicate` |
 | `out-of-order-event` | `succeeded` | `ignored_stale` |
 | Resubmitting a purchase | one payment, not two | `returning the existing payment` |

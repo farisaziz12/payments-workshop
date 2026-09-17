@@ -46,7 +46,7 @@ describe('health only counts what is inside the window', () => {
             segment: CARD_DE,
             gatewayId: 'atlas',
             outcome: 'failed',
-            failureCode: 'gateway_timeout',
+            failureCode: 'gateway_unavailable',
             ageMs: HEALTH_WINDOW_MS + 5000,
           }),
         ),
@@ -69,7 +69,12 @@ describe('health refuses to call an outage on a thin sample', () => {
   it('marks a small run of failures as too few attempts rather than degraded', () => {
     const snapshot = summariseHealth(
       many(3, () =>
-        attempt({ segment: CARD_DE, gatewayId: 'atlas', outcome: 'failed', failureCode: 'gateway_timeout' }),
+        attempt({
+          segment: CARD_DE,
+          gatewayId: 'atlas',
+          outcome: 'failed',
+          failureCode: 'gateway_unavailable',
+        }),
       ),
       NOW,
     );
@@ -82,7 +87,12 @@ describe('health refuses to call an outage on a thin sample', () => {
   it('calls it degraded once the sample is big enough', () => {
     const snapshot = summariseHealth(
       many(20, () =>
-        attempt({ segment: CARD_DE, gatewayId: 'atlas', outcome: 'failed', failureCode: 'gateway_timeout' }),
+        attempt({
+          segment: CARD_DE,
+          gatewayId: 'atlas',
+          outcome: 'failed',
+          failureCode: 'gateway_unavailable',
+        }),
       ),
       NOW,
     );
@@ -102,7 +112,7 @@ describe('the global gateway number is not the segment number', () => {
             segment: CARD_DE,
             gatewayId: 'atlas',
             outcome: 'failed',
-            failureCode: 'gateway_timeout',
+            failureCode: 'gateway_unavailable',
           }),
         ),
         ...many(16, () => attempt({ segment: CARD_GB, gatewayId: 'atlas', outcome: 'succeeded' })),
@@ -128,7 +138,7 @@ describe('the global gateway number is not the segment number', () => {
             segment: CARD_DE,
             gatewayId: 'atlas',
             outcome: 'failed',
-            failureCode: 'gateway_timeout',
+            failureCode: 'gateway_unavailable',
           }),
         ),
         ...many(10, () =>
